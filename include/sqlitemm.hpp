@@ -124,14 +124,6 @@ namespace sqlitemm
         void close() noexcept;
 
         /**
-         * Enable extended result codes by passing true as the argument;
-         * disable extended result codes by passing false as the argument.
-         *
-         * Extended result codes are disabled by default.
-         */
-        void enable_extended_result_codes(bool enable) noexcept;
-
-        /**
          * Executes zero or more UTF-8 encoded, semicolon-separate SQL
          * statements specified by the sql parameter.
          */

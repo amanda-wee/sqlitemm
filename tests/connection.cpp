@@ -34,49 +34,19 @@ TEST_CASE("in-memory database can be opened and closed")
     }
 }
 
-TEST_CASE("enable_extended_result_codes")
+TEST_CASE("extended result codes are enabled")
 {
     sqlitemm::Connection conn(":memory:");
     REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT UNIQUE);"
                                  "INSERT INTO person (name) VALUES ('Alice');"));
-
-    SECTION("extended result codes disabled by default")
+    try
     {
-        try
-        {
-            conn.execute("INSERT INTO person (name) VALUES ('Alice');");
-        }
-        catch (const sqlitemm::Error& e)
-        {
-            REQUIRE(e.code() == SQLITE_CONSTRAINT);
-        }
+        conn.execute("INSERT INTO person (name) VALUES ('Alice');");
+        REQUIRE(!"exception must be thrown");
     }
-
-    SECTION("extended result codes disabled after being enabled")
+    catch (const sqlitemm::Error& e)
     {
-        conn.enable_extended_result_codes(true);
-        conn.enable_extended_result_codes(false);
-        try
-        {
-            conn.execute("INSERT INTO person (name) VALUES ('Alice');");
-        }
-        catch (const sqlitemm::Error& e)
-        {
-            REQUIRE(e.code() == SQLITE_CONSTRAINT);
-        }
-    }
-
-    SECTION("extended result codes enabled")
-    {
-        conn.enable_extended_result_codes(true);
-        try
-        {
-            conn.execute("INSERT INTO person (name) VALUES ('Alice');");
-        }
-        catch (const sqlitemm::Error& e)
-        {
-            REQUIRE(e.code() == SQLITE_CONSTRAINT_UNIQUE);
-        }
+        REQUIRE(e.code() == SQLITE_CONSTRAINT_UNIQUE);
     }
 }
 
@@ -113,7 +83,6 @@ TEST_CASE("last_insert_rowid")
 
     SECTION("extended result codes enabled")
     {
-        conn.enable_extended_result_codes(true);
         try
         {
             conn.execute("INSERT INTO person (name) VALUES ('Alice');");

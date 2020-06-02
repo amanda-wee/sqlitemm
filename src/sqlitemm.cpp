@@ -87,6 +87,7 @@ namespace sqlitemm
         {
             throw_open_error(db, result_code);
         }
+        sqlite3_extended_result_codes(db, 1);
     }
 
     void Connection::open(const std::u16string& filename)
@@ -97,6 +98,7 @@ namespace sqlitemm
         {
             throw_open_error(db, result_code);
         }
+        sqlite3_extended_result_codes(db, 1);
     }
 
     void Connection::open(const std::string& filename, int flags, const std::string& vfs)
@@ -108,6 +110,7 @@ namespace sqlitemm
         {
             throw_open_error(db, result_code);
         }
+        sqlite3_extended_result_codes(db, 1);
     }
 
     void Connection::close() noexcept
@@ -135,11 +138,6 @@ namespace sqlitemm
             sqlite3_close(db);
         }
         db = nullptr;
-    }
-
-    void Connection::enable_extended_result_codes(bool enable) noexcept
-    {
-        sqlite3_extended_result_codes(db, enable ? 1 : 0);
     }
 
     void Connection::execute(const std::string& sql)
