@@ -137,7 +137,7 @@ namespace sqlitemm
         db = nullptr;
     }
 
-    void Connection::enable_extended_result_codes(bool enable)
+    void Connection::enable_extended_result_codes(bool enable) noexcept
     {
         sqlite3_extended_result_codes(db, enable ? 1 : 0);
     }

@@ -129,7 +129,7 @@ namespace sqlitemm
          *
          * Extended result codes are disabled by default.
          */
-        void enable_extended_result_codes(bool enable);
+        void enable_extended_result_codes(bool enable) noexcept;
 
         /**
          * Executes zero or more UTF-8 encoded, semicolon-separate SQL
