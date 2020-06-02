@@ -33,7 +33,7 @@ CFLAGS = -std=c11 -Wall -g
 CXXFLAGS = -std=c++17 -Wall -pedantic -g
 LDLIBS = -lpthread -ldl
 
-.PHONY: all check clean help test
+.PHONY: all check clean docs help test
 
 ## Build all including tests
 all: $(c_objects) $(cxx_objects) $(test_objects) $(test_executable)
@@ -51,6 +51,10 @@ check:
 
 ## Build and run tests
 test: $(test_executable) check
+
+## Build documentation files
+docs:
+	doxygen Doxyfile
 
 ## Clean build folder
 clean:

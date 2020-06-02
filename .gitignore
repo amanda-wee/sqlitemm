@@ -32,5 +32,8 @@ build/
 *.out
 *.app
 
+# Generated documentation
+docs/
+
 # Editor configuration files
 .vscode
