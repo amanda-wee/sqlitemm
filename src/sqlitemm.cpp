@@ -137,6 +137,11 @@ namespace sqlitemm
         db = nullptr;
     }
 
+    void Connection::enable_extended_result_codes(bool enable)
+    {
+        sqlite3_extended_result_codes(db, enable ? 1 : 0);
+    }
+
     void Connection::execute(const std::string& sql)
     {
         assert(db && "database connection must exist");

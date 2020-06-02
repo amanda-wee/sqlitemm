@@ -34,7 +34,53 @@ TEST_CASE("in-memory database can be opened and closed")
     }
 }
 
-TEST_CASE("test execute")
+TEST_CASE("enable_extended_result_codes")
+{
+    sqlitemm::Connection conn(":memory:");
+    REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT UNIQUE);"
+                                 "INSERT INTO person (name) VALUES ('Alice');"));
+
+    SECTION("extended result codes disabled by default")
+    {
+        try
+        {
+            conn.execute("INSERT INTO person (name) VALUES ('Alice');");
+        }
+        catch (const sqlitemm::Error& e)
+        {
+            REQUIRE(e.code() == SQLITE_CONSTRAINT);
+        }
+    }
+
+    SECTION("extended result codes disabled after being enabled")
+    {
+        conn.enable_extended_result_codes(true);
+        conn.enable_extended_result_codes(false);
+        try
+        {
+            conn.execute("INSERT INTO person (name) VALUES ('Alice');");
+        }
+        catch (const sqlitemm::Error& e)
+        {
+            REQUIRE(e.code() == SQLITE_CONSTRAINT);
+        }
+    }
+
+    SECTION("extended result codes enabled")
+    {
+        conn.enable_extended_result_codes(true);
+        try
+        {
+            conn.execute("INSERT INTO person (name) VALUES ('Alice');");
+        }
+        catch (const sqlitemm::Error& e)
+        {
+            REQUIRE(e.code() == SQLITE_CONSTRAINT_UNIQUE);
+        }
+    }
+}
+
+TEST_CASE("execute")
 {
     SECTION("using valid SQL")
     {
