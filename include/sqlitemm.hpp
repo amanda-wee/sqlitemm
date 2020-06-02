@@ -774,6 +774,13 @@ namespace sqlitemm
         }
 
         /**
+         * Begins the transaction.
+         *
+         * This should only be called to reuse a transaction object.
+         */
+        void begin();
+
+        /**
          * Commits the transaction.
          */
         void commit();

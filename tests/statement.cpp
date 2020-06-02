@@ -66,7 +66,6 @@ SCENARIO("prepared statement can bind parameters using indexed assignment")
         WHEN("rows are inserted")
         {
             auto insert_statement = conn.prepare("INSERT INTO result (name, games, score) VALUES (:name, :age, :score)");
-            auto transaction = conn.begin_transaction();
             insert_statement[":name"] = "Alice";
             insert_statement[":age"] = 20;
             insert_statement[":score"] = 12.3;
@@ -76,7 +75,6 @@ SCENARIO("prepared statement can bind parameters using indexed assignment")
             insert_statement[":age"] = 25;
             insert_statement[":score"] = 11.5;
             REQUIRE_NOTHROW(insert_statement.execute());
-            REQUIRE_NOTHROW(transaction.commit());
             REQUIRE(insert_statement.finalize());
 
             THEN("the same rows can be retrieved")

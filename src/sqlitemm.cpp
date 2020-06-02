@@ -744,11 +744,17 @@ namespace sqlitemm
 
     Transaction::Transaction(sqlite3* db) : db(db)
     {
+        begin();
+    }
+
+    void Transaction::begin()
+    {
         int result_code = sqlite3_exec(db, "BEGIN", nullptr, nullptr, nullptr);
         if (result_code != SQLITE_OK)
         {
             throw_error(db, result_code);
         }
+        committed = false;
     }
 
     void Transaction::commit()
