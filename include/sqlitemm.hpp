@@ -124,6 +124,13 @@ namespace sqlitemm
         void close() noexcept;
 
         /**
+         * Returns the number of rows modified, inserted or deleted by the
+         * most recently completed INSERT, UPDATE or DELETE statement on
+         * the database connection.
+         */
+        int changes() const noexcept;
+
+        /**
          * Executes zero or more UTF-8 encoded, semicolon-separate SQL
          * statements specified by the sql parameter.
          */

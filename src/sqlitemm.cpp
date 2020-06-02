@@ -142,6 +142,11 @@ namespace sqlitemm
         db = nullptr;
     }
 
+    int Connection::changes() const noexcept
+    {
+        return sqlite3_changes(db);
+    }
+
     void Connection::execute(const std::string& sql)
     {
         assert(db && "database connection must exist");

@@ -50,6 +50,32 @@ TEST_CASE("extended result codes are enabled")
     }
 }
 
+TEST_CASE("changes")
+{
+    sqlitemm::Connection conn(":memory:");
+    REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT);"));
+
+    SECTION("no changes")
+    {
+        REQUIRE(conn.changes() == 0);
+    }
+
+    SECTION("insert one row")
+    {
+        
+        conn.execute("INSERT INTO person (name) VALUES ('Alice');");
+        REQUIRE(conn.changes() == 1);
+    }
+
+    SECTION("insert three rows then delete two rows")
+    {
+        conn.execute("INSERT INTO person (name) VALUES ('Alice'), ('Bob'), ('Charlie');");
+        REQUIRE(conn.changes() == 3);
+        conn.execute("DELETE FROM person WHERE name IN ('Alice', 'Bob');");
+        REQUIRE(conn.changes() == 2);
+    }
+}
+
 TEST_CASE("execute")
 {
     SECTION("using valid SQL")
