@@ -344,116 +344,113 @@ namespace sqlitemm
         }
     }
 
-    namespace detail
+    Parameter::Parameter(sqlite3_stmt* stmt, const char* name) : stmt(stmt)
     {
-        Parameter::Parameter(sqlite3_stmt* stmt, const char* name) : stmt(stmt)
-        {
-            assert(stmt && "prepared statement must not be a null pointer");
-            assert(name && "bind parameter name must not be a null pointer");
+        assert(stmt && "prepared statement must not be a null pointer");
+        assert(name && "bind parameter name must not be a null pointer");
 
-            index = sqlite3_bind_parameter_index(stmt, name);
-            if (index == 0)
-            {
-                std::ostringstream ss;
-                ss << "invalid bind parameter name \"" << name << "\"";
-                throw_error(ss.str().c_str(), SQLITE_RANGE);
-            }
-        }
-
-        void Parameter::operator=(std::nullptr_t value)
+        index = sqlite3_bind_parameter_index(stmt, name);
+        if (index == 0)
         {
-            bind_parameter(stmt, index, value);
+            std::ostringstream ss;
+            ss << "invalid bind parameter name \"" << name << "\"";
+            throw_error(ss.str().c_str(), SQLITE_RANGE);
         }
+    }
 
-        void Parameter::operator=(char value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(std::nullptr_t value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(signed char value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(char value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(unsigned char value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(signed char value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(short value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(unsigned char value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(unsigned short value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(short value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(int value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(unsigned short value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(unsigned int value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(int value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(long value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(unsigned int value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(long long value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(long value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(float value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(long long value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(double value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(float value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(const std::string& value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(double value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(std::string&& value)
-        {
-            bind_parameter(stmt, index, std::move(value));
-        }
+    void Parameter::operator=(const std::string& value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(const std::u16string& value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(std::string&& value)
+    {
+        bind_parameter(stmt, index, std::move(value));
+    }
 
-        void Parameter::operator=(std::u16string&& value)
-        {
-            bind_parameter(stmt, index, std::move(value));
-        }
+    void Parameter::operator=(const std::u16string& value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(const char* value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(std::u16string&& value)
+    {
+        bind_parameter(stmt, index, std::move(value));
+    }
 
-        void Parameter::operator=(const sqlitemm::BlobValue& value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(const char* value)
+    {
+        bind_parameter(stmt, index, value);
+    }
 
-        void Parameter::operator=(const sqlitemm::TextValue& value)
-        {
-            bind_parameter(stmt, index, value);
-        }
+    void Parameter::operator=(const BlobValue& value)
+    {
+        bind_parameter(stmt, index, value);
+    }
+
+    void Parameter::operator=(const TextValue& value)
+    {
+        bind_parameter(stmt, index, value);
     }
 
     Statement& Statement::operator=(Statement&& other) noexcept

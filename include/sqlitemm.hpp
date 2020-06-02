@@ -196,143 +196,137 @@ namespace sqlitemm
     };
 
     /**
-     * sqlitemm implementation detail.
+     * Models a named parameter in a prepared statement.
      */
-    namespace detail
+    class Parameter
     {
+    public:
+        Parameter() = delete;
+        Parameter(const Parameter& other) = delete;
+        void operator=(const Parameter& other) = delete;
+        void operator=(Parameter&& other) = delete;
+
         /**
-         * Models a named parameter in a prepared statement.
+         * Move constructs the named parameter.
          */
-        class Parameter
+        Parameter(Parameter&& other) noexcept : stmt(other.stmt), index(other.index)
         {
-        public:
-            Parameter() = delete;
-            Parameter(const Parameter& other) = delete;
-            void operator=(const Parameter& other) = delete;
-            void operator=(Parameter&& other) = delete;
+            other.stmt = nullptr;
+            other.index = 0;
+        }
 
-            /**
-             * Move constructs the named parameter.
-             */
-            Parameter(Parameter&& other) noexcept : stmt(other.stmt), index(other.index)
-            {
-                other.stmt = nullptr;
-                other.index = 0;
-            }
+        /**
+         * Binds NULL to the named parameter.
+         */
+        void operator=(std::nullptr_t value);
 
-            /**
-             * Binds NULL to the named parameter.
-             */
-            void operator=(std::nullptr_t value);
+        /**
+         * Converts value to int and binds the result to the named parameter.
+         */
+        void operator=(char value);
 
-            /**
-             * Converts value to int and binds the result to the named parameter.
-             */
-            void operator=(char value);
+        /**
+         * Converts value to int and binds the result to the named parameter.
+         */
+        void operator=(signed char value);
 
-            /**
-             * Converts value to int and binds the result to the named parameter.
-             */
-            void operator=(signed char value);
+        /**
+         * Converts value to int and binds the result to the named parameter.
+         */
+        void operator=(unsigned char value);
 
-            /**
-             * Converts value to int and binds the result to the named parameter.
-             */
-            void operator=(unsigned char value);
+        /**
+         * Converts value to int and binds the result to the named parameter.
+         */
+        void operator=(short value);
 
-            /**
-             * Converts value to int and binds the result to the named parameter.
-             */
-            void operator=(short value);
+        /**
+         * Converts value to int and binds the result to the named parameter.
+         */
+        void operator=(unsigned short value);
 
-            /**
-             * Converts value to int and binds the result to the named parameter.
-             */
-            void operator=(unsigned short value);
+        /**
+         * Binds value to the named parameter.
+         */
+        void operator=(int value);
 
-            /**
-             * Binds value to the named parameter.
-             */
-            void operator=(int value);
+        /**
+         * Converts value to long long and binds the result to the named
+         * parameter.
+         */
+        void operator=(unsigned int value);
 
-            /**
-             * Converts value to long long and binds the result to the named
-             * parameter.
-             */
-            void operator=(unsigned int value);
+        /**
+         * Converts value to int or long long, depending on whether a long will
+         * fit in an int or long long, and binds the result to the named
+         * parameter.
+         */
+        void operator=(long value);
 
-            /**
-             * Converts value to int or long long, depending on whether a long will
-             * fit in an int or long long, and binds the result to the named
-             * parameter.
-             */
-            void operator=(long value);
+        /**
+         * Binds value to the named parameter.
+         */
+        void operator=(long long value);
 
-            /**
-             * Binds value to the named parameter.
-             */
-            void operator=(long long value);
+        /**
+         * Converts value to double and binds the result to the named
+         * parameter.
+         */
+        void operator=(float value);
 
-            /**
-             * Converts value to double and binds the result to the named
-             * parameter.
-             */
-            void operator=(float value);
+        /**
+         * Binds value to the named parameter.
+         */
+        void operator=(double value);
 
-            /**
-             * Binds value to the named parameter.
-             */
-            void operator=(double value);
+        /**
+         * Binds the content of value and its length to the named parameter,
+         * without copying.
+         */
+        void operator=(const std::string& value);
 
-            /**
-             * Binds the content of value and its length to the named parameter,
-             * without copying.
-             */
-            void operator=(const std::string& value);
+        /**
+         * Binds a copy of the content of value and its length to the named
+         * parameter.
+         */
+        void operator=(std::string&& value);
 
-            /**
-             * Binds a copy of the content of value and its length to the named
-             * parameter.
-             */
-            void operator=(std::string&& value);
+        /**
+         * Binds the content of value and its length to the named parameter,
+         * without copying.
+         */
+        void operator=(const std::u16string& value);
 
-            /**
-             * Binds the content of value and its length to the named parameter,
-             * without copying.
-             */
-            void operator=(const std::u16string& value);
+        /**
+         * Binds a copy of the content of value and its length to the named
+         * parameter.
+         */
+        void operator=(std::u16string&& value);
 
-            /**
-             * Binds a copy of the content of value and its length to the named
-             * parameter.
-             */
-            void operator=(std::u16string&& value);
+        /**
+         * Binds the content of value and its null-terminated length to the
+         * named parameter, without copying.
+         */
+        void operator=(const char* value);
 
-            /**
-             * Binds the content of value and its null-terminated length to the
-             * named parameter, without copying.
-             */
-            void operator=(const char* value);
+        /**
+         * Binds value to the named parameter. The content will be destroyed
+         * by the provided destructor.
+         */
+        void operator=(const BlobValue& value);
 
-            /**
-             * Binds value to the named parameter. The content will be destroyed
-             * by the provided destructor.
-             */
-            void operator=(const sqlitemm::BlobValue& value);
+        /**
+         * Binds value to the named parameter. The content will be destroyed
+         * by the provided destructor.
+         */
+        void operator=(const TextValue& value);
+    private:
+        sqlite3_stmt* stmt; // prepared statement handle
+        int index;          // index of the named parameter in the prepared statement
 
-            /**
-             * Binds value to the named parameter. The content will be destroyed
-             * by the provided destructor.
-             */
-            void operator=(const sqlitemm::TextValue& value);
-        private:
-            sqlite3_stmt* stmt; // prepared statement handle
-            int index;          // index of the named parameter in the prepared statement
-
-            Parameter(sqlite3_stmt* stmt, const char* name);
-            friend class sqlitemm::Statement;
-        };
-    }
+        Parameter(sqlite3_stmt* stmt, const char* name);
+        friend class Statement;
+    };
 
     class Result;
 
@@ -507,15 +501,15 @@ namespace sqlitemm
         /**
          * Allows for parameter binding by name as a null-terminated string.
          */
-        detail::Parameter operator[](const char* name)
+        Parameter operator[](const char* name)
         {
-            return detail::Parameter(*stmt_ptr, name);
+            return Parameter(*stmt_ptr, name);
         }
 
         /**
          * Allows for parameter binding by name as a std::string.
          */
-        detail::Parameter operator[](const std::string& name)
+        Parameter operator[](const std::string& name)
         {
             return (*this)[name.c_str()];
         }
