@@ -152,6 +152,14 @@ namespace sqlitemm
          * Begins a transaction and returns it.
          */
         Transaction begin_transaction();
+
+        /**
+         * Sets a busy handler that sleeps multiple times until at least ms
+         * milliseconds of sleeping have accumulated when a table is locked.
+         * If the table remains locked after sleeping, BusyError will be thrown
+         * by the relevant execute or step function.
+         */
+        void set_busy_timeout(int ms) noexcept;
     private:
         sqlite3* db = nullptr; // database connection handle
         // prepared statements that were prepared via this database connection
@@ -834,6 +842,15 @@ namespace sqlitemm
     private:
         std::shared_ptr<std::string> what_arg; // full error message
         int error_code; // error code from SQLite
+    };
+
+    /**
+     * SQLite busy errors.
+     */
+    class BusyError : public Error
+    {
+    public:
+        using Error::Error;
     };
 
     /**

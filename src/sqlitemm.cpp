@@ -49,6 +49,8 @@ namespace sqlitemm
 
             switch (result_code & 0xff)
             {
+            case SQLITE_BUSY:
+                throw BusyError(what_arg, result_code);
             case SQLITE_CONSTRAINT:
                 throw ConstraintError(what_arg, result_code);
             default:
@@ -183,6 +185,11 @@ namespace sqlitemm
     Transaction Connection::begin_transaction()
     {
         return Transaction(db);
+    }
+
+    void Connection::set_busy_timeout(int ms) noexcept
+    {
+        sqlite3_busy_timeout(db, ms);
     }
 
     void Connection::clean_stmt_ptrs()
