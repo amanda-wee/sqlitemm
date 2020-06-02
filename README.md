@@ -9,6 +9,7 @@ SQLitemm provides the following classes to wrap SQLite resource objects:
 Additionally, SQLitemm provides the following classes to wrap SQLite concepts:
 * `Result`: a result object that abstracts out the result retrieval aspects of `sqlite3_stmt`
 * `Transaction`: a transaction object to automatically rollback when a C++ exception is thrown or propagated should the transaction be not yet committed or already rolled back
+* `Error`: an exception base class for SQLite error codes; derived classes are provided where they are likely to be useful to be handled separately
 
 Installation
 ------------
