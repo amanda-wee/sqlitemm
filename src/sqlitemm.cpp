@@ -153,6 +153,11 @@ namespace sqlitemm
         }
     }
 
+    long long Connection::last_insert_rowid() const noexcept
+    {
+        return static_cast<long long>(sqlite3_last_insert_rowid(db));
+    }
+
     Statement Connection::prepare(const std::string& sql)
     {
         assert(db && "database connection must exist");

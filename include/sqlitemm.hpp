@@ -138,6 +138,12 @@ namespace sqlitemm
         void execute(const std::string& sql);
 
         /**
+         * Returns the last insert row id, or 0 if there has not been a successful
+         * insertion.
+         */
+        long long last_insert_rowid() const noexcept;
+
+        /**
          * Returns a prepared statement for the single SQL statement
          * specified by the sql parameter.
          */

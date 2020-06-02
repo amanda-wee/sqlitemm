@@ -94,3 +94,33 @@ TEST_CASE("execute")
         REQUIRE_THROWS(conn.execute("SELECT;"));
     }
 }
+
+TEST_CASE("last_insert_rowid")
+{
+    sqlitemm::Connection conn(":memory:");
+    REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT UNIQUE);"));
+
+    SECTION("no successful inserts")
+    {
+        REQUIRE(conn.last_insert_rowid() == 0);
+    }
+
+    SECTION("one successful insert")
+    {
+        conn.execute("INSERT INTO person (name) VALUES ('Alice');");
+        REQUIRE(conn.last_insert_rowid() == 1);
+    }
+
+    SECTION("extended result codes enabled")
+    {
+        conn.enable_extended_result_codes(true);
+        try
+        {
+            conn.execute("INSERT INTO person (name) VALUES ('Alice');");
+        }
+        catch (const sqlitemm::Error& e)
+        {
+            REQUIRE(e.code() == SQLITE_CONSTRAINT_UNIQUE);
+        }
+    }
+}
