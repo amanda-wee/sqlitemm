@@ -818,7 +818,7 @@ namespace sqlitemm
         /**
          * Returns the full error message.
          */
-        virtual const char* what() const noexcept
+        virtual const char* what() const noexcept override
         {
             return what_arg->c_str();
         }
@@ -826,13 +826,22 @@ namespace sqlitemm
         /**
          * Returns the error code.
          */
-        int code() const noexcept
+        virtual int code() const noexcept
         {
             return error_code;
         }
     private:
         std::shared_ptr<std::string> what_arg; // full error message
         int error_code; // error code from SQLite
+    };
+
+    /**
+     * SQLite constraint errors.
+     */
+    class ConstraintError : public Error
+    {
+    public:
+        using Error::Error;
     };
 }
 

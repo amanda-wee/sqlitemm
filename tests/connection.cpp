@@ -80,16 +80,4 @@ TEST_CASE("last_insert_rowid")
         conn.execute("INSERT INTO person (name) VALUES ('Alice');");
         REQUIRE(conn.last_insert_rowid() == 1);
     }
-
-    SECTION("extended result codes enabled")
-    {
-        try
-        {
-            conn.execute("INSERT INTO person (name) VALUES ('Alice');");
-        }
-        catch (const sqlitemm::Error& e)
-        {
-            REQUIRE(e.code() == SQLITE_CONSTRAINT_UNIQUE);
-        }
-    }
 }

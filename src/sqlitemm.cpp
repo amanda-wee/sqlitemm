@@ -49,6 +49,8 @@ namespace sqlitemm
 
             switch (result_code & 0xff)
             {
+            case SQLITE_CONSTRAINT:
+                throw ConstraintError(what_arg, result_code);
             default:
                 throw Error(what_arg, result_code);
             }
