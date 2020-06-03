@@ -31,6 +31,11 @@
 namespace sqlitemm
 {
     class Statement;
+    class Parameter;
+    class Result;
+    class ResultField;
+    template<typename T>
+    class ResultIterator;
     class Transaction;
 
     /**
@@ -344,8 +349,6 @@ namespace sqlitemm
         friend class Statement;
     };
 
-    class Result;
-
     /**
      * Represents a prepared statement.
      */
@@ -359,7 +362,7 @@ namespace sqlitemm
         /**
          * Move constructs the prepared statement.
          */
-        Statement(Statement&& other) noexcept : stmt_ptr(std::move(other.stmt_ptr)), column_counter(other.column_counter) {}
+        Statement(Statement&& other) noexcept : stmt_ptr(std::move(other.stmt_ptr)), parameter_index(other.parameter_index) {}
 
         /**
          * Move assigns the prepared statement.
@@ -553,7 +556,7 @@ namespace sqlitemm
         }
     private:
         std::shared_ptr<sqlite3_stmt*> stmt_ptr; // prepared statement handle
-        int column_counter = 1;                  // parameter counter for binding
+        int parameter_index = 1;                 // index of current parameter for binding
 
         explicit Statement(std::shared_ptr<sqlite3_stmt*> stmt_ptr) : stmt_ptr(stmt_ptr) {}
 
@@ -581,26 +584,76 @@ namespace sqlitemm
     class ResultField
     {
     public:
-        ResultField(sqlite3_stmt* stmt, int index, bool strict_typing) :
-            stmt(stmt), index(index), strict_typing(strict_typing)
-        {
-            column_type = sqlite3_column_type(stmt, index);
-        }
+        ResultField() = delete;
 
+        /**
+         * Returns the result field as a char.
+         */
         operator char() const;
+
+        /**
+         * Returns the result field as a signed char.
+         */
         operator signed char() const;
+
+        /**
+         * Returns the result field as an unsigned char.
+         */
         operator unsigned char() const;
+
+        /**
+         * Returns the result field as a short.
+         */
         operator short() const;
+
+        /**
+         * Returns the result field as an unsigned short.
+         */
         operator unsigned short() const;
+
+        /**
+         * Returns the result field as an int.
+         */
         operator int() const;
+
+        /**
+         * Returns the result field as an unsigned int.
+         */
         operator unsigned int() const;
+
+        /**
+         * Returns the result field as a long.
+         */
         operator long() const;
+
+        /**
+         * Returns the result field as a long long.
+         */
         operator long long() const;
+
+        /**
+         * Returns the result field as a float.
+         */
         operator float() const;
+
+        /**
+         * Returns the result field as a double.
+         */
         operator double() const;
+
+        /**
+         * Returns the result field as a std::string.
+         */
         operator std::string() const;
+
+        /**
+         * Returns the result field as a std::u16string.
+         */
         operator std::u16string() const;
 
+        /**
+         * Returns the result field as a Nullable<T>.
+         */
         template<typename T>
         operator Nullable<T>() const
         {
@@ -659,13 +712,19 @@ namespace sqlitemm
         int index;
         int column_type;
         bool strict_typing;
+
+        ResultField(sqlite3_stmt* stmt, int index, bool strict_typing) :
+            stmt(stmt), index(index), strict_typing(strict_typing)
+        {
+            column_type = sqlite3_column_type(stmt, index);
+        }
+
+        friend class Result;
     };
 
-    template<typename T>
-    class ResultIterator;
-
     /**
-     * Models a result set from executing a query through a prepared statement.
+     * Models a result set, and a result row thereof, from executing a query
+     * through a prepared statement.
      */
     class Result
     {
@@ -717,12 +776,19 @@ namespace sqlitemm
             return ResultField(stmt, index, strict_typing);
         }
 
+        /**
+         * Returns a result iterator for T that points to the first row of the
+         * result set.
+         */
         template<typename T>
         ResultIterator<T> begin()
         {
             return ResultIterator<T>(*this);
         }
 
+        /**
+         * Returns an empty result iterator for T.
+         */
         template<typename T>
         ResultIterator<T> end()
         {
@@ -893,13 +959,20 @@ namespace sqlitemm
         sqlite3_stmt* stmt;   // prepared statement handle
         int counter = 0;      // field counter for each result row
         int column_count = 0; // number of columns in the result set
-        bool strict_typing = false;
+        bool strict_typing = false; // true if SQLite automatic type conversions should be prevented
 
         explicit Result(sqlite3_stmt* stmt, bool strict_typing) : stmt(stmt), strict_typing(strict_typing) {}
 
         friend Result Statement::execute_query(bool strict_typing);
     };
 
+    /**
+     * Input iterator to the rows of a result set.
+     *
+     * To use a result iterator for some type T, define a constructor for T
+     * that takes a reference to Result, with which it reads the row from
+     * result set that the iterator points to.
+     */
     template<typename T>
     class ResultIterator
     {
@@ -910,8 +983,17 @@ namespace sqlitemm
         using pointer = T*;
         using reference = T&;
 
+        /**
+         * Constructs an empty result iterator, i.e., denoting the end of the
+         * result set.
+         */
         ResultIterator() = default;
 
+        /**
+         * Constructs an iterator to the first row of the result set.
+         *
+         * Note that this means stepping through the result set once.
+         */
         ResultIterator(Result& result_) : result(&result_)
         {
             if (!result->step())
@@ -920,11 +1002,18 @@ namespace sqlitemm
             }
         }
 
+        /**
+         * Returns an object of type T initialised with the result row that this
+         * iterator points to.
+         */
         T operator*() const
         {
             return T(*result);
         }
 
+        /**
+         * Pre-increments the iterator to step to the next row of the result set.
+         */
         ResultIterator& operator++()
         {
             if (!result->step())
@@ -934,6 +1023,9 @@ namespace sqlitemm
             return *this;
         }
 
+        /**
+         * Post-increments the iterator to step to the next row of the result set.
+         */
         ResultIterator operator++(int)
         {
             ResultIterator temp(*this);
@@ -941,11 +1033,20 @@ namespace sqlitemm
             return temp;
         }
 
+        /**
+         * Converts the iterator to bool by returning true if the iterator is not
+         * empty.
+         */
         explicit operator bool() const noexcept
         {
             return result != nullptr;
         }
 
+        /**
+         * Compares the iterator with another result iterator for equality. Two
+         * result iterators are equal if they point to the same result set, or if
+         * they are both empty result iterators.
+         */
         bool operator==(const ResultIterator& other) const noexcept
         {
             return result == other.result;
@@ -954,18 +1055,29 @@ namespace sqlitemm
         Result* result = nullptr;
     };
 
+    /**
+     * Compares the iterator with another result iterator for inequality.
+     * Two result iterators are not equal if they do not point to the same
+     * result set, or if one of them is empty but the other is not empty.
+     */
     template<typename T>
     bool operator!=(const ResultIterator<T>& lhs, const ResultIterator<T>& rhs) noexcept
     {
         return !(lhs == rhs);
     }
 
+    /**
+     * Allows result iterators to be used in range-based for loops.
+     */
     template<typename T>
     ResultIterator<T> begin(ResultIterator<T> iter)
     {
         return iter;
     }
 
+    /**
+     * Allows result iterators to be used in range-based for loops.
+     */
     template<typename T>
     ResultIterator<T> end(ResultIterator<T> iter)
     {
@@ -1078,12 +1190,28 @@ namespace sqlitemm
         using Error::Error;
     };
 
+    /**
+     * SQLite type errors when strict typing is enabled.
+     *
+     * SQLite normally does automatic type conversions between its
+     * fundamental types, but if strict typing is enabled in SQLitemm, an
+     * attempt to do an automatic type conversion will result in this
+     * exception being thrown.
+     */
     class TypeError : public Error
     {
     public:
         using Error::Error;
     };
 
+    /**
+     * SQLite null type errors when strict typing is enabled.
+     *
+     * SQLite normally does automatic type conversions, but if strict typing
+     * is enabled in SQLitemm, an attempt to do an automatic type
+     * conversion from NULL to another SQLite fundamental type without
+     * using Nullable will result in this exception being thrown.
+     */
     class NullTypeError : public TypeError
     {
     public:

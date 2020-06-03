@@ -471,140 +471,140 @@ namespace sqlitemm
     {
         using std::swap;
         swap(stmt_ptr, other.stmt_ptr);
-        swap(column_counter, other.column_counter);
+        swap(parameter_index, other.parameter_index);
         return *this;
     }
 
     Statement& Statement::operator<<(std::nullptr_t value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(char value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(signed char value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(unsigned char value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(short value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(unsigned short value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(int value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(unsigned int value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(long value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(long long value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(float value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(double value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(const std::string& value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(std::string&& value)
     {
-        bind_parameter(*stmt_ptr, column_counter, std::move(value));
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, std::move(value));
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(const std::u16string& value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(std::u16string&& value)
     {
-        bind_parameter(*stmt_ptr, column_counter, std::move(value));
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, std::move(value));
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(const char* value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(const BlobValue& value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
     Statement& Statement::operator<<(const TextValue& value)
     {
-        bind_parameter(*stmt_ptr, column_counter, value);
-        ++column_counter;
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
         return *this;
     }
 
@@ -640,7 +640,7 @@ namespace sqlitemm
         assert(stmt_ptr && *stmt_ptr);
         int result_code = sqlite3_reset(*stmt_ptr);
         check_result_ok(*stmt_ptr, result_code);
-        column_counter = 1;
+        parameter_index = 1;
         if (clear_bindings)
         {
             this->clear_bindings();

@@ -1,5 +1,5 @@
 /************************************************************************************************************
- * SQLitemm tests source file primarily for testing sqlitemm::Transaction
+ * SQLitemm tests source file primarily for testing sqlitemm::Result and sqlitemm::ResultIterator
  *
  * Copyright 2020 Amanda Wee
  *
