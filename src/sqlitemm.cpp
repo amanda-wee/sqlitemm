@@ -635,12 +635,21 @@ namespace sqlitemm
         return Result(*stmt_ptr, strict_typing);
     }
 
-    void Statement::reset()
+    void Statement::reset(bool clear_bindings)
     {
         assert(stmt_ptr && *stmt_ptr);
         int result_code = sqlite3_reset(*stmt_ptr);
         check_result_ok(*stmt_ptr, result_code);
         column_counter = 1;
+        if (clear_bindings)
+        {
+            this->clear_bindings();
+        }
+    }
+
+    void Statement::clear_bindings()
+    {
+        sqlite3_clear_bindings(*stmt_ptr);
     }
 
     Result& Result::operator>>(char& value)

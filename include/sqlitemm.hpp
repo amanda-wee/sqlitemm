@@ -375,6 +375,28 @@ namespace sqlitemm
         }
 
         /**
+         * Executes the prepared statement without returning a result set.
+         */
+        void execute();
+
+        /**
+         * Executes the prepared statement, returning the corresponding
+         * result set as a Result object.
+         */
+        Result execute_query(bool strict_typing = false);
+
+        /**
+         * Resets the prepared statement for future execution.
+         * If clear_bindings is true, the parameter bindings will also be cleared.
+         */
+        void reset(bool clear_bindings = false);
+
+        /**
+         * Clears the existing parameter bindings.
+         */
+        void clear_bindings();
+
+        /**
          * Finalizes the prepared statement.
          */
         bool finalize() noexcept;
@@ -528,22 +550,6 @@ namespace sqlitemm
         {
             return (*this)[name.c_str()];
         }
-
-        /**
-         * Executes the prepared statement without returning a result set.
-         */
-        void execute();
-
-        /**
-         * Executes the prepared statement, returning the corresponding
-         * result set as a Result object.
-         */
-        Result execute_query(bool strict_typing = false);
-
-        /**
-         * Resets the prepared statement for future execution.
-         */
-        void reset();
     private:
         std::shared_ptr<sqlite3_stmt*> stmt_ptr; // prepared statement handle
         int column_counter = 1;                  // parameter counter for binding
