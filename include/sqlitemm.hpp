@@ -19,6 +19,7 @@
 #include <cassert>
 #include <cstddef>
 #include <exception>
+#include <iterator>
 #include <memory>
 #include <string>
 #include <vector>
@@ -660,6 +661,9 @@ namespace sqlitemm
         bool strict_typing;
     };
 
+    template<typename T>
+    class ResultIterator;
+
     /**
      * Models a result set from executing a query through a prepared statement.
      */
@@ -697,9 +701,32 @@ namespace sqlitemm
             return *this;
         }
 
-        ResultField operator[](int index)
+        /**
+         * Steps through the result set to advance to the next result row.
+         *
+         * Must be called before reading any fields in the result row.
+         * Returns true if there is a result row to read from.
+         */
+        bool step();
+
+        /**
+         * Returns the result field corresponding to the index (starting from 0).
+         */
+        ResultField operator[](int index) const
         {
             return ResultField(stmt, index, strict_typing);
+        }
+
+        template<typename T>
+        ResultIterator<T> begin()
+        {
+            return ResultIterator<T>(*this);
+        }
+
+        template<typename T>
+        ResultIterator<T> end()
+        {
+            return ResultIterator<T>();
         }
 
         /**
@@ -862,14 +889,6 @@ namespace sqlitemm
             assert(counter < column_count);
             (*this)[counter++].as_blob(retrieval_func);
         }
-
-        /**
-         * Steps through the result set to advance to the next result row.
-         *
-         * Must be called before reading any fields in the result row.
-         * Returns true if there is a result row to read from.
-         */
-        bool step();
     private:
         sqlite3_stmt* stmt;   // prepared statement handle
         int counter = 0;      // field counter for each result row
@@ -880,6 +899,78 @@ namespace sqlitemm
 
         friend Result Statement::execute_query(bool strict_typing);
     };
+
+    template<typename T>
+    class ResultIterator
+    {
+    public:
+        using iterator_category = std::input_iterator_tag;
+        using value_type = T;
+        using difference_type = std::ptrdiff_t;
+        using pointer = T*;
+        using reference = T&;
+
+        ResultIterator() = default;
+
+        ResultIterator(Result& result_) : result(&result_)
+        {
+            if (!result->step())
+            {
+                result = nullptr;
+            }
+        }
+
+        T operator*() const
+        {
+            return T(*result);
+        }
+
+        ResultIterator& operator++()
+        {
+            if (!result->step())
+            {
+                result = nullptr;
+            }
+            return *this;
+        }
+
+        ResultIterator operator++(int)
+        {
+            ResultIterator temp(*this);
+            ++*this;
+            return temp;
+        }
+
+        explicit operator bool() const noexcept
+        {
+            return result != nullptr;
+        }
+
+        bool operator==(const ResultIterator& other) const noexcept
+        {
+            return result == other.result;
+        }
+    private:
+        Result* result = nullptr;
+    };
+
+    template<typename T>
+    bool operator!=(const ResultIterator<T>& lhs, const ResultIterator<T>& rhs) noexcept
+    {
+        return !(lhs == rhs);
+    }
+
+    template<typename T>
+    ResultIterator<T> begin(ResultIterator<T> iter)
+    {
+        return iter;
+    }
+
+    template<typename T>
+    ResultIterator<T> end(ResultIterator<T> iter)
+    {
+        return ResultIterator<T>();
+    }
 
     /**
      * Models a database transaction.
