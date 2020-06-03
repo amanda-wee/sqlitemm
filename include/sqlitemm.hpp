@@ -538,7 +538,7 @@ namespace sqlitemm
          * Executes the prepared statement, returning the corresponding
          * result set as a Result object.
          */
-        Result execute_query();
+        Result execute_query(bool strict_typing = false);
 
         /**
          * Resets the prepared statement for future execution.
@@ -551,6 +551,60 @@ namespace sqlitemm
         explicit Statement(std::shared_ptr<sqlite3_stmt*> stmt_ptr) : stmt_ptr(stmt_ptr) {}
 
         friend Statement Connection::prepare(const std::string& sql);
+    };
+
+    /**
+     * Turns T into a Nullable type consisting of value (an object of type T)
+     * and null (a bool that is set to true if the result field is NULL).
+     */
+    template<typename T>
+    struct Nullable
+    {
+        Nullable() = default;
+        Nullable(const T& value, bool null) : value(value), null(null) {}
+        Nullable(T&& value, bool null) : value(std::move(value)), null(null) {}
+
+        T value;
+        bool null = false;
+    };
+
+    /**
+     * Models a field in a result row.
+     */
+    class ResultField
+    {
+    public:
+        ResultField(sqlite3_stmt* stmt, int index, bool strict_typing) :
+            stmt(stmt), index(index), strict_typing(strict_typing)
+        {
+            column_type = sqlite3_column_type(stmt, index);
+        }
+
+        operator char() const;
+        operator signed char() const;
+        operator unsigned char() const;
+        operator short() const;
+        operator unsigned short() const;
+        operator int() const;
+        operator unsigned int() const;
+        operator long() const;
+        operator long long() const;
+        operator float() const;
+        operator double() const;
+        operator std::string() const;
+        operator std::u16string() const;
+
+        template<typename T>
+        operator Nullable<T>() const
+        {
+            bool null = column_type == SQLITE_NULL;
+            return Nullable<T>((null ? T{} : T(*this)), null);
+        }
+    private:
+        sqlite3_stmt* stmt;
+        int index;
+        int column_type;
+        bool strict_typing;
     };
 
     /**
@@ -588,6 +642,11 @@ namespace sqlitemm
                 other.column_count = 0;
             }
             return *this;
+        }
+
+        ResultField operator[](int index)
+        {
+            return ResultField(stmt, index, strict_typing);
         }
 
         /**
@@ -684,6 +743,24 @@ namespace sqlitemm
         Result& operator>>(std::u16string& value);
 
         /**
+         * If the current field in the result row is NULL, this sets value.null to
+         * true. Otherwise this sets value.null to false, then reads and converts
+         * the current field to the type of value.value and stores it in
+         * value.value, after which it advances to the next field, if any.
+         * Returns a reference to this Result object.
+         */
+        template<typename T>
+        Result& operator>>(Nullable<T>& value)
+        {
+            value.null = sqlite3_column_type(stmt, counter);
+            if (!value.null)
+            {
+                *this >> value.value;
+            }
+            return *this;
+        }
+
+        /**
          * Reads the current field as UTF-8 encoded text, done by invoking the
          * function object argument with two arguments:
          *   * the current field in the result row as a const unsigned char*
@@ -750,10 +827,11 @@ namespace sqlitemm
         sqlite3_stmt* stmt;   // prepared statement handle
         int counter = 0;      // field counter for each result row
         int column_count = 0; // number of columns in the result set
+        bool strict_typing = false;
 
-        explicit Result(sqlite3_stmt* stmt) : stmt(stmt) {}
+        explicit Result(sqlite3_stmt* stmt, bool strict_typing) : stmt(stmt), strict_typing(strict_typing) {}
 
-        friend Result Statement::execute_query();
+        friend Result Statement::execute_query(bool strict_typing);
     };
 
     /**
@@ -765,7 +843,7 @@ namespace sqlitemm
         Transaction() = delete;
         Transaction(const Transaction& other) = delete;
         void operator=(const Transaction& other) = delete;
-        void operator=(const Transaction&& other) = delete;
+        void operator=(Transaction&& other) = delete;
 
         /**
          * Move constructs the transaction.
@@ -860,6 +938,18 @@ namespace sqlitemm
     {
     public:
         using Error::Error;
+    };
+
+    class TypeError : public Error
+    {
+    public:
+        using Error::Error;
+    };
+
+    class NullTypeError : public TypeError
+    {
+    public:
+        using TypeError::TypeError;
     };
 }
 

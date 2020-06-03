@@ -27,17 +27,8 @@ namespace sqlitemm
 {
     namespace
     {
-        void throw_error(sqlite3* db, const char* message, int result_code)
+        void throw_error(const char* message, int result_code)
         {
-            if (db)
-            {
-                const char* errmsg = sqlite3_errmsg(db);
-                if (errmsg)
-                {
-                    message = errmsg;
-                }
-            }
-
             if (!message)
             {
                 message = "SQLite database error";
@@ -60,25 +51,81 @@ namespace sqlitemm
 
         void throw_error(sqlite3* db, int result_code)
         {
-            throw_error(db, nullptr, result_code);
+            throw_error(db ? sqlite3_errmsg(db) : nullptr, result_code);
         }
 
-        void throw_error(const char* message, int result_code)
+        void throw_error(sqlite3_stmt* stmt, int result_code)
         {
-            throw_error(nullptr, message, result_code);
+            throw_error(sqlite3_db_handle(stmt), result_code);
         }
 
-        void throw_open_error(sqlite3* db, int result_code)
+        void check_open_ok(sqlite3* db, int result_code)
         {
-            if (db)
+            if (result_code != SQLITE_OK)
             {
-                std::string error_message{sqlite3_errmsg(db)};
-                sqlite3_close(db);
-                throw_error(error_message.c_str(), result_code);
+                if (db)
+                {
+                    std::string error_message{sqlite3_errmsg(db)};
+                    sqlite3_close(db);
+                    throw_error(error_message.c_str(), result_code);
+                }
+                else
+                {
+                    throw_error("unable to allocate memory for SQLite database connection handle", result_code);
+                }
             }
-            else
+        }
+
+        void check_result_ok(sqlite3* db, int result_code)
+        {
+            if (result_code != SQLITE_OK)
             {
-                throw_error("unable to allocate memory for SQLite database connection handle", result_code);
+                throw_error(db, result_code);
+            }
+        }
+
+        void check_result_ok(sqlite3_stmt* stmt, int result_code)
+        {
+            if (result_code != SQLITE_OK)
+            {
+                throw_error(stmt, result_code);
+            }
+        }
+
+        std::string get_column_type_name(int column_type)
+        {
+            switch (column_type)
+            {
+            case SQLITE_NULL:
+                return "NULL";
+            case SQLITE_INTEGER:
+                return "INTEGER";
+            case SQLITE_FLOAT:
+                return "FLOAT";
+            case SQLITE_TEXT:
+                return "TEXT";
+            case SQLITE_BLOB:
+                return "BLOB";
+            default:
+                return "UNKNOWN";
+            }
+        }
+
+        void strict_type_check(bool strict_typing, int column_type, int expected_column_type)
+        {
+            if (strict_typing && column_type != expected_column_type)
+            {
+                std::ostringstream ss;
+                ss << "expected result field to be of " << get_column_type_name(expected_column_type) << " type but the value was ";
+
+                if (column_type == SQLITE_NULL)
+                {
+                    ss << "NULL";
+                    throw NullTypeError(ss.str(), 0);
+                }
+
+                ss << "of " << get_column_type_name(column_type) << " type";
+                throw TypeError(ss.str(), 0);
             }
         }
     }
@@ -89,7 +136,7 @@ namespace sqlitemm
         int result_code = sqlite3_open(filename.c_str(), &db);
         if (result_code != SQLITE_OK)
         {
-            throw_open_error(db, result_code);
+            check_open_ok(db, result_code);
         }
         sqlite3_extended_result_codes(db, 1);
     }
@@ -98,10 +145,7 @@ namespace sqlitemm
     {
         assert(!db);
         int result_code = sqlite3_open16(filename.c_str(), &db);
-        if (result_code != SQLITE_OK)
-        {
-            throw_open_error(db, result_code);
-        }
+        check_open_ok(db, result_code);
         sqlite3_extended_result_codes(db, 1);
     }
 
@@ -110,10 +154,7 @@ namespace sqlitemm
         assert(!db);
         const char *vfs_name = vfs.empty() ? nullptr : vfs.c_str();
         int result_code = sqlite3_open_v2(filename.c_str(), &db, flags, vfs_name);
-        if (result_code != SQLITE_OK)
-        {
-            throw_open_error(db, result_code);
-        }
+        check_open_ok(db, result_code);
         sqlite3_extended_result_codes(db, 1);
     }
 
@@ -154,10 +195,7 @@ namespace sqlitemm
         assert(db && "database connection must exist");
 
         int result_code = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr);
-        if (result_code != SQLITE_OK)
-        {
-            throw_error(db, result_code);
-        }
+        check_result_ok(db, result_code);
     }
 
     long long Connection::last_insert_rowid() const noexcept
@@ -171,10 +209,7 @@ namespace sqlitemm
 
         sqlite3_stmt* stmt;
         int result_code = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
-        if (result_code != SQLITE_OK)
-        {
-            throw_error(db, result_code);
-        }
+        check_result_ok(db, result_code);
 
         auto stmt_ptr = std::make_shared<sqlite3_stmt*>(stmt);
         clean_stmt_ptrs();
@@ -203,101 +238,19 @@ namespace sqlitemm
         void bind_parameter(sqlite3_stmt* stmt, int index, std::nullptr_t)
         {
             int result_code = sqlite3_bind_null(stmt, index);
-            if (result_code != SQLITE_OK)
-            {
-                throw_error(sqlite3_db_handle(stmt), result_code);
-            }
+            check_result_ok(stmt, result_code);
         }
 
         void bind_parameter(sqlite3_stmt* stmt, int index, int value)
         {
             int result_code = sqlite3_bind_int(stmt, index, value);
-            if (result_code != SQLITE_OK)
-            {
-                throw_error(sqlite3_db_handle(stmt), result_code);
-            }
+            check_result_ok(stmt, result_code);
         }
 
         void bind_parameter(sqlite3_stmt* stmt, int index, long long value)
         {
             int result_code = sqlite3_bind_int64(stmt, index, value);
-            if (result_code != SQLITE_OK)
-            {
-                throw_error(sqlite3_db_handle(stmt), result_code);
-            }
-        }
-
-        void bind_parameter(sqlite3_stmt* stmt, int index, double value)
-        {
-            int result_code = sqlite3_bind_double(stmt, index, value);
-            if (result_code != SQLITE_OK)
-            {
-                throw_error(sqlite3_db_handle(stmt), result_code);
-            }
-        }
-
-        void bind_parameter(sqlite3_stmt* stmt, int index, const char* value)
-        {
-            int result_code = sqlite3_bind_text(stmt, index, value, -1, SQLITE_STATIC);
-            if (result_code != SQLITE_OK)
-            {
-                throw_error(sqlite3_db_handle(stmt), result_code);
-            }
-        }
-
-        void bind_parameter(sqlite3_stmt* stmt, int index, const std::string& value)
-        {
-            int result_code = sqlite3_bind_text(stmt, index, &value[0], static_cast<int>(value.length()), SQLITE_STATIC);
-            if (result_code != SQLITE_OK)
-            {
-                throw_error(sqlite3_db_handle(stmt), result_code);
-            }
-        }
-
-        void bind_parameter(sqlite3_stmt* stmt, int index, std::string&& value)
-        {
-            int result_code = sqlite3_bind_text(stmt, index, &value[0], static_cast<int>(value.length()), SQLITE_TRANSIENT);
-            if (result_code != SQLITE_OK)
-            {
-                throw_error(sqlite3_db_handle(stmt), result_code);
-            }
-        }
-
-        void bind_parameter(sqlite3_stmt* stmt, int index, const std::u16string& value)
-        {
-            int result_code = sqlite3_bind_text16(stmt, index, &value[0], static_cast<int>(value.length()) * 2, SQLITE_STATIC);
-            if (result_code != SQLITE_OK)
-            {
-                throw_error(sqlite3_db_handle(stmt), result_code);
-            }
-        }
-
-        void bind_parameter(sqlite3_stmt* stmt, int index, std::u16string&& value)
-        {
-            int result_code = sqlite3_bind_text16(stmt, index, &value[0], static_cast<int>(value.length()) * 2, SQLITE_TRANSIENT);
-            if (result_code != SQLITE_OK)
-            {
-                throw_error(sqlite3_db_handle(stmt), result_code);
-            }
-        }
-
-        void bind_parameter(sqlite3_stmt* stmt, int index, const BlobValue& value)
-        {
-            auto num_bytes = static_cast<sqlite3_uint64>(value.num_bytes);
-            int result_code = sqlite3_bind_blob64(stmt, index, value.content, num_bytes, value.destructor);
-            if (result_code != SQLITE_OK)
-            {
-                throw_error(sqlite3_db_handle(stmt), result_code);
-            }
-        }
-
-        void bind_parameter(sqlite3_stmt* stmt, int index, const TextValue& value)
-        {
-            int result_code = sqlite3_bind_text(stmt, index, value.content, value.num_bytes, value.destructor);
-            if (result_code != SQLITE_OK)
-            {
-                throw_error(sqlite3_db_handle(stmt), result_code);
-            }
+            check_result_ok(stmt, result_code);
         }
 
         void bind_parameter(sqlite3_stmt* stmt, int index, char value)
@@ -350,9 +303,58 @@ namespace sqlitemm
             }
         }
 
+        void bind_parameter(sqlite3_stmt* stmt, int index, double value)
+        {
+            int result_code = sqlite3_bind_double(stmt, index, value);
+            check_result_ok(stmt, result_code);
+        }
+
         void bind_parameter(sqlite3_stmt* stmt, int index, float value)
         {
             bind_parameter(stmt, index, static_cast<double>(value));
+        }
+
+        void bind_parameter(sqlite3_stmt* stmt, int index, const char* value)
+        {
+            int result_code = sqlite3_bind_text(stmt, index, value, -1, SQLITE_STATIC);
+            check_result_ok(stmt, result_code);
+        }
+
+        void bind_parameter(sqlite3_stmt* stmt, int index, const std::string& value)
+        {
+            int result_code = sqlite3_bind_text(stmt, index, &value[0], static_cast<int>(value.length()), SQLITE_STATIC);
+            check_result_ok(stmt, result_code);
+        }
+
+        void bind_parameter(sqlite3_stmt* stmt, int index, std::string&& value)
+        {
+            int result_code = sqlite3_bind_text(stmt, index, &value[0], static_cast<int>(value.length()), SQLITE_TRANSIENT);
+            check_result_ok(stmt, result_code);
+        }
+
+        void bind_parameter(sqlite3_stmt* stmt, int index, const std::u16string& value)
+        {
+            int result_code = sqlite3_bind_text16(stmt, index, &value[0], static_cast<int>(value.length()) * 2, SQLITE_STATIC);
+            check_result_ok(stmt, result_code);
+        }
+
+        void bind_parameter(sqlite3_stmt* stmt, int index, std::u16string&& value)
+        {
+            int result_code = sqlite3_bind_text16(stmt, index, &value[0], static_cast<int>(value.length()) * 2, SQLITE_TRANSIENT);
+            check_result_ok(stmt, result_code);
+        }
+
+        void bind_parameter(sqlite3_stmt* stmt, int index, const TextValue& value)
+        {
+            int result_code = sqlite3_bind_text(stmt, index, value.content, value.num_bytes, value.destructor);
+            check_result_ok(stmt, result_code);
+        }
+
+        void bind_parameter(sqlite3_stmt* stmt, int index, const BlobValue& value)
+        {
+            auto num_bytes = static_cast<sqlite3_uint64>(value.num_bytes);
+            int result_code = sqlite3_bind_blob64(stmt, index, value.content, num_bytes, value.destructor);
+            check_result_ok(stmt, result_code);
         }
     }
 
@@ -623,30 +625,28 @@ namespace sqlitemm
         int result_code = sqlite3_step(*stmt_ptr);
         if (result_code != SQLITE_DONE && result_code != SQLITE_ROW)
         {
-            throw_error(sqlite3_db_handle(*stmt_ptr), result_code);
+            throw_error(*stmt_ptr, result_code);
         }
     }
 
-    Result Statement::execute_query()
+    Result Statement::execute_query(bool strict_typing)
     {
         assert(stmt_ptr && *stmt_ptr);
-        return Result(*stmt_ptr);
+        return Result(*stmt_ptr, strict_typing);
     }
 
     void Statement::reset()
     {
         assert(stmt_ptr && *stmt_ptr);
         int result_code = sqlite3_reset(*stmt_ptr);
-        if (result_code != SQLITE_OK)
-        {
-            throw_error(sqlite3_db_handle(*stmt_ptr), result_code);
-        }
+        check_result_ok(*stmt_ptr, result_code);
         column_counter = 1;
     }
 
     Result& Result::operator>>(char& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
         value = static_cast<char>(sqlite3_column_int(stmt, counter++));
         return *this;
     }
@@ -654,6 +654,7 @@ namespace sqlitemm
     Result& Result::operator>>(signed char& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
         value = static_cast<signed char>(sqlite3_column_int(stmt, counter++));
         return *this;
     }
@@ -661,6 +662,7 @@ namespace sqlitemm
     Result& Result::operator>>(unsigned char& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
         value = static_cast<unsigned char>(sqlite3_column_int(stmt, counter++));
         return *this;
     }
@@ -668,6 +670,7 @@ namespace sqlitemm
     Result& Result::operator>>(short& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
         value = static_cast<short>(sqlite3_column_int(stmt, counter++));
         return *this;
     }
@@ -675,6 +678,7 @@ namespace sqlitemm
     Result& Result::operator>>(unsigned short& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
         value = static_cast<unsigned short>(sqlite3_column_int(stmt, counter++));
         return *this;
     }
@@ -682,6 +686,7 @@ namespace sqlitemm
     Result& Result::operator>>(int& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
         value = sqlite3_column_int(stmt, counter++);
         return *this;
     }
@@ -689,6 +694,7 @@ namespace sqlitemm
     Result& Result::operator>>(unsigned int& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
         value = static_cast<unsigned int>(sqlite3_column_int64(stmt, counter++));
         return *this;
     }
@@ -696,6 +702,7 @@ namespace sqlitemm
     Result& Result::operator>>(long& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
         value = static_cast<long>(sqlite3_column_int64(stmt, counter++));
         return *this;
     }
@@ -703,6 +710,7 @@ namespace sqlitemm
     Result& Result::operator>>(long long& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
         value = static_cast<long long>(sqlite3_column_int64(stmt, counter++));
         return *this;
     }
@@ -710,6 +718,7 @@ namespace sqlitemm
     Result& Result::operator>>(float& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_FLOAT);
         value = static_cast<float>(sqlite3_column_double(stmt, counter++));
         return *this;
     }
@@ -717,6 +726,7 @@ namespace sqlitemm
     Result& Result::operator>>(double& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_FLOAT);
         value = sqlite3_column_double(stmt, counter++);
         return *this;
     }
@@ -724,6 +734,7 @@ namespace sqlitemm
     Result& Result::operator>>(std::string& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_TEXT);
         const unsigned char* result = sqlite3_column_text(stmt, counter);
         value = std::string(result, result + sqlite3_column_bytes(stmt, counter));
         ++counter;
@@ -733,6 +744,7 @@ namespace sqlitemm
     Result& Result::operator>>(std::u16string& value)
     {
         assert(counter < column_count);
+        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_TEXT);
         auto result = static_cast<const unsigned char*>(sqlite3_column_text16(stmt, counter));
         value = std::u16string(result, result + sqlite3_column_bytes16(stmt, counter));
         ++counter;
@@ -756,9 +768,89 @@ namespace sqlitemm
         case SQLITE_DONE:
             return false;
         default:
-            throw_error(sqlite3_db_handle(stmt), result_code);
+            throw_error(stmt, result_code);
             return false;
         }
+    }
+
+    ResultField::operator char() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
+        return static_cast<char>(sqlite3_column_int(stmt, index));
+    }
+
+    ResultField::operator signed char() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
+        return static_cast<signed char>(sqlite3_column_int(stmt, index));
+    }
+
+    ResultField::operator unsigned char() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
+        return static_cast<unsigned char>(sqlite3_column_int(stmt, index));
+    }
+
+    ResultField::operator short() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
+        return static_cast<short>(sqlite3_column_int(stmt, index));
+    }
+
+    ResultField::operator unsigned short() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
+        return static_cast<unsigned short>(sqlite3_column_int(stmt, index));
+    }
+
+    ResultField::operator int() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
+        return sqlite3_column_int(stmt, index);
+    }
+
+    ResultField::operator unsigned int() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
+        return static_cast<unsigned int>(sqlite3_column_int64(stmt, index));
+    }
+
+    ResultField::operator long() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
+        return static_cast<long>(sqlite3_column_int64(stmt, index));
+    }
+
+    ResultField::operator long long() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
+        return sqlite3_column_int64(stmt, index);
+    }
+
+    ResultField::operator float() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_FLOAT);
+        return static_cast<float>(sqlite3_column_double(stmt, index));
+    }
+
+    ResultField::operator double() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_FLOAT);
+        return sqlite3_column_double(stmt, index);
+    }
+
+    ResultField::operator std::string() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_TEXT);
+        const unsigned char* value = sqlite3_column_text(stmt, index);
+        return std::string(value, value + sqlite3_column_bytes(stmt, index));
+    }
+
+    ResultField::operator std::u16string() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_TEXT);
+        auto value = static_cast<const unsigned char*>(sqlite3_column_text16(stmt, index));
+        return std::u16string(value, value + sqlite3_column_bytes16(stmt, index));
     }
 
     Transaction::Transaction(sqlite3* db) : db(db)
@@ -769,20 +861,14 @@ namespace sqlitemm
     void Transaction::begin()
     {
         int result_code = sqlite3_exec(db, "BEGIN", nullptr, nullptr, nullptr);
-        if (result_code != SQLITE_OK)
-        {
-            throw_error(db, result_code);
-        }
+        check_result_ok(db, result_code);
         committed = false;
     }
 
     void Transaction::commit()
     {
         int result_code = sqlite3_exec(db, "COMMIT", nullptr, nullptr, nullptr);
-        if (result_code != SQLITE_OK)
-        {
-            throw_error(db, result_code);
-        }
+        check_result_ok(db, result_code);
         committed = true;
     }
 
