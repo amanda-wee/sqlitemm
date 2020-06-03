@@ -625,6 +625,11 @@ namespace sqlitemm
         ResultField() = delete;
 
         /**
+         * Returns the result field as a bool.
+         */
+        operator bool() const;
+
+        /**
          * Returns the result field as a char.
          */
         operator char() const;
@@ -665,9 +670,19 @@ namespace sqlitemm
         operator long() const;
 
         /**
+         * Returns the result field as an unsigned long.
+         */
+        operator unsigned long() const;
+
+        /**
          * Returns the result field as a long long.
          */
         operator long long() const;
+
+        /**
+         * Returns the result field as an unsigned long long.
+         */
+        operator unsigned long long() const;
 
         /**
          * Returns the result field as a float.
@@ -751,7 +766,7 @@ namespace sqlitemm
         int column_type;
         bool strict_typing;
 
-        ResultField(sqlite3_stmt* stmt, int index, bool strict_typing) :
+        ResultField(sqlite3_stmt* stmt, int index, bool strict_typing) noexcept :
             stmt(stmt), index(index), strict_typing(strict_typing)
         {
             column_type = sqlite3_column_type(stmt, index);
@@ -809,7 +824,7 @@ namespace sqlitemm
         /**
          * Returns the result field corresponding to the index (starting from 0).
          */
-        ResultField operator[](int index) const
+        ResultField operator[](int index) const noexcept
         {
             return ResultField(stmt, index, strict_typing);
         }
@@ -832,6 +847,13 @@ namespace sqlitemm
         {
             return ResultIterator<T>();
         }
+
+        /**
+         * Reads and converts the current field in the result row to bool and
+         * stores it in value, then advances to the next field, if any.
+         * Returns a reference to this Result object.
+         */
+        Result& operator>>(bool& value);
 
         /**
          * Reads and converts the current field in the result row to char and
@@ -891,11 +913,26 @@ namespace sqlitemm
         Result& operator>>(long& value);
 
         /**
+         * Reads and converts the current field in the result row to unsigned
+         * long and stores it in value, then advances to the next field, if any.
+         * Returns a reference to this Result object.
+         */
+        Result& operator>>(unsigned long& value);
+
+        /**
          * Reads and converts the current field in the result row to long long
          * and stores it in value, then advances to the next field, if any.
          * Returns a reference to this Result object.
          */
         Result& operator>>(long long& value);
+
+        /**
+         * Reads and converts the current field in the result row to unsigned
+         * long long and stores it in value, then advances to the next field, if
+         * any.
+         * Returns a reference to this Result object.
+         */
+        Result& operator>>(unsigned long long& value);
 
         /**
          * Reads and converts the current field in the result row to float and

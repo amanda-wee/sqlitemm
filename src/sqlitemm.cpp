@@ -695,6 +695,13 @@ namespace sqlitemm
         sqlite3_clear_bindings(*stmt_ptr);
     }
 
+    Result& Result::operator>>(bool& value)
+    {
+        assert(counter < column_count);
+        value = static_cast<bool>((*this)[counter++]);
+        return *this;
+    }
+
     Result& Result::operator>>(char& value)
     {
         assert(counter < column_count);
@@ -751,10 +758,24 @@ namespace sqlitemm
         return *this;
     }
 
+    Result& Result::operator>>(unsigned long& value)
+    {
+        assert(counter < column_count);
+        value = static_cast<unsigned long>((*this)[counter++]);
+        return *this;
+    }
+
     Result& Result::operator>>(long long& value)
     {
         assert(counter < column_count);
         value = static_cast<long long>((*this)[counter++]);
+        return *this;
+    }
+
+    Result& Result::operator>>(unsigned long long& value)
+    {
+        assert(counter < column_count);
+        value = static_cast<unsigned long long>((*this)[counter++]);
         return *this;
     }
 
@@ -808,6 +829,12 @@ namespace sqlitemm
         }
     }
 
+    ResultField::operator bool() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
+        return sqlite3_column_int(stmt, index) != 0;
+    }
+
     ResultField::operator char() const
     {
         strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
@@ -856,10 +883,22 @@ namespace sqlitemm
         return static_cast<long>(sqlite3_column_int64(stmt, index));
     }
 
+    ResultField::operator unsigned long() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
+        return static_cast<unsigned long>(sqlite3_column_int64(stmt, index));
+    }
+
     ResultField::operator long long() const
     {
         strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
         return sqlite3_column_int64(stmt, index);
+    }
+
+    ResultField::operator unsigned long long() const
+    {
+        strict_type_check(strict_typing, column_type, SQLITE_INTEGER);
+        return static_cast<unsigned long long>(sqlite3_column_int64(stmt, index));
     }
 
     ResultField::operator float() const
