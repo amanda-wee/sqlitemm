@@ -244,6 +244,11 @@ namespace sqlitemm
         /**
          * Converts value to int and binds the result to the named parameter.
          */
+        void operator=(bool value);
+
+        /**
+         * Converts value to int and binds the result to the named parameter.
+         */
         void operator=(char value);
 
         /**
@@ -285,9 +290,21 @@ namespace sqlitemm
         void operator=(long value);
 
         /**
+         * Converts value to long long and binds the result to the named
+         * parameter.
+         */
+        void operator=(unsigned long value);
+
+        /**
          * Binds value to the named parameter.
          */
         void operator=(long long value);
+
+        /**
+         * Converts value to long long and binds the result to the named
+         * parameter.
+         */
+        void operator=(unsigned long long value);
 
         /**
          * Converts value to double and binds the result to the named
@@ -416,6 +433,13 @@ namespace sqlitemm
          * then advances to the next parameter.
          * Returns a reference to this prepared statement object.
          */
+        Statement& operator<<(bool value);
+
+        /**
+         * Converts value to int and binds the result to the current parameter,
+         * then advances to the next parameter.
+         * Returns a reference to this prepared statement object.
+         */
         Statement& operator<<(char value);
 
         /**
@@ -469,11 +493,25 @@ namespace sqlitemm
         Statement& operator<<(long value);
 
         /**
+         * Converts value to long long and binds the result to the current
+         * parameter, then advances to the next parameter.
+         * Returns a reference to this prepared statement object.
+         */
+        Statement& operator<<(unsigned long value);
+
+        /**
          * Binds value to the current parameter, then advances to the next
          * parameter.
          * Returns a reference to this prepared statement object.
          */
         Statement& operator<<(long long value);
+
+        /**
+         * Converts value to long long and binds the result to the current
+         * parameter, then advances to the next parameter.
+         * Returns a reference to this prepared statement object.
+         */
+        Statement& operator<<(unsigned long long value);
 
         /**
          * Converts value to double and binds the result to the current

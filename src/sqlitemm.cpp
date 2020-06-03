@@ -253,6 +253,11 @@ namespace sqlitemm
             check_result_ok(stmt, result_code);
         }
 
+        void bind_parameter(sqlite3_stmt* stmt, int index, bool value)
+        {
+            bind_parameter(stmt, index, (value ? 1 : 0));
+        }
+
         void bind_parameter(sqlite3_stmt* stmt, int index, char value)
         {
             bind_parameter(stmt, index, static_cast<int>(value));
@@ -275,19 +280,11 @@ namespace sqlitemm
 
         void bind_parameter(sqlite3_stmt* stmt, int index, unsigned short value)
         {
-            if (sizeof(unsigned short) < sizeof(int))
-            {
-                bind_parameter(stmt, index, static_cast<int>(value));
-            }
-            else
-            {
-                bind_parameter(stmt, index, static_cast<long long>(value));
-            }
+            bind_parameter(stmt, index, static_cast<int>(value));
         }
 
         void bind_parameter(sqlite3_stmt* stmt, int index, unsigned int value)
         {
-            static_assert(sizeof(unsigned int) < sizeof(long long));
             bind_parameter(stmt, index, static_cast<long long>(value));
         }
 
@@ -301,6 +298,16 @@ namespace sqlitemm
             {
                 bind_parameter(stmt, index, static_cast<long long>(value));
             }
+        }
+
+        void bind_parameter(sqlite3_stmt* stmt, int index, unsigned long value)
+        {
+            bind_parameter(stmt, index, static_cast<long long>(value));
+        }
+
+        void bind_parameter(sqlite3_stmt* stmt, int index, unsigned long long value)
+        {
+            bind_parameter(stmt, index, static_cast<long long>(value));
         }
 
         void bind_parameter(sqlite3_stmt* stmt, int index, double value)
@@ -377,6 +384,11 @@ namespace sqlitemm
         bind_parameter(stmt, index, value);
     }
 
+    void Parameter::operator=(bool value)
+    {
+        bind_parameter(stmt, index, value);
+    }
+
     void Parameter::operator=(char value)
     {
         bind_parameter(stmt, index, value);
@@ -417,7 +429,17 @@ namespace sqlitemm
         bind_parameter(stmt, index, value);
     }
 
+    void Parameter::operator=(unsigned long value)
+    {
+        bind_parameter(stmt, index, value);
+    }
+
     void Parameter::operator=(long long value)
+    {
+        bind_parameter(stmt, index, value);
+    }
+
+    void Parameter::operator=(unsigned long long value)
     {
         bind_parameter(stmt, index, value);
     }
@@ -482,6 +504,13 @@ namespace sqlitemm
         return *this;
     }
 
+    Statement& Statement::operator<<(bool value)
+    {
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
+        return *this;
+    }
+
     Statement& Statement::operator<<(char value)
     {
         bind_parameter(*stmt_ptr, parameter_index, value);
@@ -538,7 +567,21 @@ namespace sqlitemm
         return *this;
     }
 
+    Statement& Statement::operator<<(unsigned long value)
+    {
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
+        return *this;
+    }
+
     Statement& Statement::operator<<(long long value)
+    {
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
+        return *this;
+    }
+
+    Statement& Statement::operator<<(unsigned long long value)
     {
         bind_parameter(*stmt_ptr, parameter_index, value);
         ++parameter_index;
