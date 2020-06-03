@@ -646,108 +646,91 @@ namespace sqlitemm
     Result& Result::operator>>(char& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
-        value = static_cast<char>(sqlite3_column_int(stmt, counter++));
+        value = static_cast<char>((*this)[counter++]);
         return *this;
     }
 
     Result& Result::operator>>(signed char& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
-        value = static_cast<signed char>(sqlite3_column_int(stmt, counter++));
+        value = static_cast<signed char>((*this)[counter++]);
         return *this;
     }
 
     Result& Result::operator>>(unsigned char& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
-        value = static_cast<unsigned char>(sqlite3_column_int(stmt, counter++));
+        value = static_cast<unsigned char>((*this)[counter++]);
         return *this;
     }
 
     Result& Result::operator>>(short& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
-        value = static_cast<short>(sqlite3_column_int(stmt, counter++));
+        value = static_cast<short>((*this)[counter++]);
         return *this;
     }
 
     Result& Result::operator>>(unsigned short& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
-        value = static_cast<unsigned short>(sqlite3_column_int(stmt, counter++));
+        value = static_cast<unsigned short>((*this)[counter++]);
         return *this;
     }
 
     Result& Result::operator>>(int& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
-        value = sqlite3_column_int(stmt, counter++);
+        value = static_cast<int>((*this)[counter++]);
         return *this;
     }
 
     Result& Result::operator>>(unsigned int& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
-        value = static_cast<unsigned int>(sqlite3_column_int64(stmt, counter++));
+        value = static_cast<unsigned int>((*this)[counter++]);
         return *this;
     }
 
     Result& Result::operator>>(long& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
-        value = static_cast<long>(sqlite3_column_int64(stmt, counter++));
+        value = static_cast<long>((*this)[counter++]);
         return *this;
     }
 
     Result& Result::operator>>(long long& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_INTEGER);
-        value = static_cast<long long>(sqlite3_column_int64(stmt, counter++));
+        value = static_cast<long long>((*this)[counter++]);
         return *this;
     }
 
     Result& Result::operator>>(float& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_FLOAT);
-        value = static_cast<float>(sqlite3_column_double(stmt, counter++));
+        value = static_cast<float>((*this)[counter++]);
         return *this;
     }
 
     Result& Result::operator>>(double& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_FLOAT);
-        value = sqlite3_column_double(stmt, counter++);
+        value = static_cast<double>((*this)[counter++]);
         return *this;
     }
 
     Result& Result::operator>>(std::string& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_TEXT);
-        const unsigned char* result = sqlite3_column_text(stmt, counter);
-        value = std::string(result, result + sqlite3_column_bytes(stmt, counter));
-        ++counter;
+        value = std::string((*this)[counter++]);
         return *this;
     }
 
     Result& Result::operator>>(std::u16string& value)
     {
         assert(counter < column_count);
-        strict_type_check(strict_typing, sqlite3_column_type(stmt, counter), SQLITE_TEXT);
-        auto result = static_cast<const unsigned char*>(sqlite3_column_text16(stmt, counter));
-        value = std::u16string(result, result + sqlite3_column_bytes16(stmt, counter));
-        ++counter;
+        value = std::u16string((*this)[counter++]);
         return *this;
     }
 
