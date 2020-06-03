@@ -600,6 +600,53 @@ namespace sqlitemm
             bool null = column_type == SQLITE_NULL;
             return Nullable<T>((null ? T{} : T(*this)), null);
         }
+
+        /**
+         * Reads the field as UTF-8 encoded text, done by invoking the
+         * function object argument with two arguments:
+         *   * the field in the result row as a const unsigned char*
+         *   * the number of bytes of the field in the result row,
+         *     excluding the terminating null character
+         *
+         * The function object is expected to copy the string.
+         */
+        template<typename F>
+        void as_text(F retrieval_func)
+        {
+            auto value = sqlite3_column_text(stmt, index);
+            retrieval_func(value, sqlite3_column_bytes(stmt, index));
+        }
+
+        /**
+         * Reads the field as UTF-16 encoded text, done by invoking the
+         * function object argument with two arguments:
+         *   * the field in the result row as a const unsigned void*
+         *   * the number of bytes of the field in the result row,
+         *     excluding the terminating null character
+         *
+         * The function object is expected to copy the string.
+         */
+        template<typename F>
+        void as_text16(F retrieval_func)
+        {
+            auto value = sqlite3_column_text16(stmt, index);
+            retrieval_func(value, sqlite3_column_bytes16(stmt, index));
+        }
+
+        /**
+         * Reads the field as a BLOB, done by invoking the function object
+         * argument with two arguments:
+         *   * the field in the result row as a const unsigned void*
+         *   * the number of bytes of the field in the result row
+         *
+         * The function object is expected to copy the bytes of the BLOB.
+         */
+        template<typename F>
+        void as_blob(F retrieval_func)
+        {
+            auto value = sqlite3_column_blob(stmt, index);
+            retrieval_func(value, sqlite3_column_bytes(stmt, index));
+        }
     private:
         sqlite3_stmt* stmt;
         int index;
@@ -774,9 +821,7 @@ namespace sqlitemm
         void as_text(F retrieval_func)
         {
             assert(counter < column_count);
-            auto result = sqlite3_column_text(stmt, counter);
-            retrieval_func(result, sqlite3_column_bytes(stmt, counter));
-            ++counter;
+            (*this)[counter++].as_text(retrieval_func);
         }
 
         /**
@@ -793,9 +838,7 @@ namespace sqlitemm
         void as_text16(F retrieval_func)
         {
             assert(counter < column_count);
-            auto result = sqlite3_column_text16(stmt, counter);
-            retrieval_func(result, sqlite3_column_bytes16(stmt, counter));
-            ++counter;
+            (*this)[counter++].as_text16(retrieval_func);
         }
 
         /**
@@ -811,9 +854,7 @@ namespace sqlitemm
         void as_blob(F retrieval_func)
         {
             assert(counter < column_count);
-            auto result = sqlite3_column_blob(stmt, counter);
-            retrieval_func(result, sqlite3_column_bytes(stmt, counter));
-            ++counter;
+            (*this)[counter++].as_blob(retrieval_func);
         }
 
         /**
