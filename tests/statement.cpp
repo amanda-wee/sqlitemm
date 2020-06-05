@@ -361,6 +361,42 @@ TEST_CASE("Statement::operator<<")
             REQUIRE(result.step());
             REQUIRE(std::u16string(result[0]) == value);
         }
+
+        SECTION("TextValue")
+        {
+            std::string value = "Alice";
+            insert_statement << sqlitemm::TextValue(value.c_str(), value.length(), SQLITE_STATIC);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            REQUIRE(std::string(result[0]) == value);
+        }
+    }
+
+    SECTION("BLOB")
+    {
+        auto insert_statement = conn.prepare("INSERT INTO item (name) VALUES (:name)");
+
+        SECTION("BlobValue")
+        {
+            std::array<int, 4> value{0, 1, 2, 3};
+            insert_statement << sqlitemm::BlobValue(&value, sizeof(value), SQLITE_STATIC);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            decltype(value) field_result;
+            result.as_text([&field_result](auto value, int num_bytes) {
+                REQUIRE(num_bytes == sizeof(field_result));
+                auto p = reinterpret_cast<const char*>(value);
+                std::copy(p, p + num_bytes, reinterpret_cast<char*>(&field_result));
+            });
+        }
     }
 }
 
@@ -503,6 +539,42 @@ TEST_CASE("Statement::operator[](const char*)")
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
             REQUIRE(std::u16string(result[0]) == value);
+        }
+
+        SECTION("TextValue")
+        {
+            std::string value = "Alice";
+            insert_statement[":name"] = sqlitemm::TextValue(value.c_str(), value.length(), SQLITE_STATIC);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            REQUIRE(std::string(result[0]) == value);
+        }
+    }
+
+    SECTION("BLOB")
+    {
+        auto insert_statement = conn.prepare("INSERT INTO item (name) VALUES (:name)");
+
+        SECTION("BlobValue")
+        {
+            std::array<int, 4> value{0, 1, 2, 3};
+            insert_statement[":name"] = sqlitemm::BlobValue(&value, sizeof(value), SQLITE_STATIC);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            decltype(value) field_result;
+            result.as_text([&field_result](auto value, int num_bytes) {
+                REQUIRE(num_bytes == sizeof(field_result));
+                auto p = reinterpret_cast<const char*>(value);
+                std::copy(p, p + num_bytes, reinterpret_cast<char*>(&field_result));
+            });
         }
     }
 }
@@ -647,6 +719,43 @@ TEST_CASE("Statement::operator[](const std::string&)")
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
             REQUIRE(std::u16string(result[0]) == value);
+        }
+
+        SECTION("TextValue")
+        {
+            std::string value = "Alice";
+            insert_statement[parameter] = sqlitemm::TextValue(value.c_str(), value.length(), SQLITE_STATIC);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            REQUIRE(std::string(result[0]) == value);
+        }
+    }
+
+    SECTION("BLOB")
+    {
+        auto insert_statement = conn.prepare("INSERT INTO item (name) VALUES (:name)");
+        std::string parameter = ":name";
+
+        SECTION("BlobValue")
+        {
+            std::array<int, 4> value{0, 1, 2, 3};
+            insert_statement[parameter] = sqlitemm::BlobValue(&value, sizeof(value), SQLITE_STATIC);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            decltype(value) field_result;
+            result.as_text([&field_result](auto value, int num_bytes) {
+                REQUIRE(num_bytes == sizeof(field_result));
+                auto p = reinterpret_cast<const char*>(value);
+                std::copy(p, p + num_bytes, reinterpret_cast<char*>(&field_result));
+            });
         }
     }
 }
