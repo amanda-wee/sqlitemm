@@ -341,13 +341,21 @@ namespace sqlitemm
 
         void bind_parameter(sqlite3_stmt* stmt, int index, const std::u16string& value)
         {
-            int result_code = sqlite3_bind_text16(stmt, index, &value[0], static_cast<int>(value.length()) * 2, SQLITE_STATIC);
+            int result_code = sqlite3_bind_text16(stmt,
+                                                  index,
+                                                  &value[0],
+                                                  static_cast<int>(value.length() * sizeof(value[0])),
+                                                  SQLITE_STATIC);
             check_result_ok(stmt, result_code);
         }
 
         void bind_parameter(sqlite3_stmt* stmt, int index, std::u16string&& value)
         {
-            int result_code = sqlite3_bind_text16(stmt, index, &value[0], static_cast<int>(value.length()) * 2, SQLITE_TRANSIENT);
+            int result_code = sqlite3_bind_text16(stmt,
+                                                  index,
+                                                  &value[0],
+                                                  static_cast<int>(value.length() * sizeof(value[0])),
+                                                  SQLITE_TRANSIENT);
             check_result_ok(stmt, result_code);
         }
 
