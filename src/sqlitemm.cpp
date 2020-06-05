@@ -931,8 +931,8 @@ namespace sqlitemm
     ResultField::operator std::u16string() const
     {
         strict_type_check(strict_typing, column_type, SQLITE_TEXT);
-        auto value = static_cast<const unsigned char*>(sqlite3_column_text16(stmt, index));
-        return std::u16string(value, value + sqlite3_column_bytes16(stmt, index));
+        auto value = static_cast<const char16_t*>(sqlite3_column_text16(stmt, index));
+        return std::u16string(value, value + sqlite3_column_bytes16(stmt, index) / sizeof(char16_t));
     }
 
     Transaction::Transaction(sqlite3* db) : db(db)

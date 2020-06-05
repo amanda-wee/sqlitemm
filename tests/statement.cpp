@@ -340,6 +340,19 @@ TEST_CASE("Statement::operator<<")
             REQUIRE(result.step());
             REQUIRE(std::string(result[0]) == value);
         }
+
+        SECTION("std::u16string")
+        {
+            std::u16string value = u"Alice";
+            insert_statement << value;
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            REQUIRE(std::u16string(result[0]) == value);
+        }
     }
 }
 
@@ -461,6 +474,19 @@ TEST_CASE("Statement::operator[](const char*)")
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
             REQUIRE(std::string(result[0]) == value);
+        }
+
+        SECTION("std::u16string")
+        {
+            std::u16string value = u"Alice";
+            insert_statement[":name"] = value;
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            REQUIRE(std::u16string(result[0]) == value);
         }
     }
 }
@@ -584,6 +610,19 @@ TEST_CASE("Statement::operator[](const std::string&)")
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
             REQUIRE(std::string(result[0]) == value);
+        }
+
+        SECTION("std::u16string")
+        {
+            std::u16string value = u"Alice";
+            insert_statement[parameter] = value;
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            REQUIRE(std::u16string(result[0]) == value);
         }
     }
 }
