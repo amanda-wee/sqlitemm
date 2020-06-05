@@ -21,6 +21,7 @@
 #include <exception>
 #include <iterator>
 #include <memory>
+#include <optional>
 #include <string>
 #include <vector>
 #include "sqlite3.h"
@@ -602,21 +603,6 @@ namespace sqlitemm
     };
 
     /**
-     * Turns T into a Nullable type consisting of value (an object of type T)
-     * and null (a bool that is set to true if the result field is NULL).
-     */
-    template<typename T>
-    struct Nullable
-    {
-        Nullable() = default;
-        Nullable(const T& value, bool null) : value(value), null(null) {}
-        Nullable(T&& value, bool null) : value(std::move(value)), null(null) {}
-
-        T value;
-        bool null = false;
-    };
-
-    /**
      * Models a field in a result row.
      */
     class ResultField
@@ -705,13 +691,17 @@ namespace sqlitemm
         operator std::u16string() const;
 
         /**
-         * Returns the result field as a Nullable<T>.
+         * Returns the result field as a std::optional<T>.
          */
         template<typename T>
-        operator Nullable<T>() const
+        std::optional<T> to_optional() const
         {
-            bool null = column_type == SQLITE_NULL;
-            return Nullable<T>((null ? T{} : T(*this)), null);
+            std::optional<T> result;
+            if (column_type != SQLITE_NULL)
+            {
+                result.emplace(*this);
+            }
+            return result;
         }
 
         /**
@@ -971,12 +961,18 @@ namespace sqlitemm
          * Returns a reference to this Result object.
          */
         template<typename T>
-        Result& operator>>(Nullable<T>& value)
+        Result& operator>>(std::optional<T>& value)
         {
-            value.null = sqlite3_column_type(stmt, counter);
-            if (!value.null)
+            if (sqlite3_column_type(stmt, counter) != SQLITE_NULL)
             {
-                *this >> value.value;
+                T temp;
+                *this >> temp;
+                value = temp;
+            }
+            else
+            {
+                value.reset();
+                ++counter;
             }
             return *this;
         }
@@ -1285,7 +1281,7 @@ namespace sqlitemm
      * SQLite normally does automatic type conversions, but if strict typing
      * is enabled in SQLitemm, an attempt to do an automatic type
      * conversion from NULL to another SQLite fundamental type without
-     * using Nullable will result in this exception being thrown.
+     * using std::optional will result in this exception being thrown.
      */
     class NullTypeError : public TypeError
     {

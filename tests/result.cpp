@@ -43,32 +43,102 @@ SCENARIO("results can be retrieved using result fields")
             }
         }
 
-        WHEN("there is a row with null values and another without null values")
+        WHEN("there is a row with null values, another without null values, and another that is a mix")
         {
             REQUIRE_NOTHROW(conn.execute("INSERT INTO item (name, quantity, price) VALUES "
-                                         "(NULL, NULL, NULL), ('ball', 2, 1.23);"));
+                                         "(NULL, NULL, NULL), ('ball', 2, 1.23), (NULL, 3, NULL);"));
 
-            THEN("the rows can be retrieved using result fields to Nullable")
+            THEN("the rows can be retrieved using result fields to std::optional")
             {
                 auto statement = conn.prepare("SELECT name, quantity, price FROM item;");
                 auto result = statement.execute_query();
                 result.step();
-                sqlitemm::Nullable<std::string> name = result[0];
-                REQUIRE(name.null);
-                sqlitemm::Nullable<int> quantity = result[1];
-                REQUIRE(quantity.null);
-                sqlitemm::Nullable<double> price = result[2];
-                REQUIRE(quantity.null);
+                auto name = result[0].to_optional<std::string>();
+                REQUIRE_FALSE(name.has_value());
+                auto quantity = result[1].to_optional<int>();
+                REQUIRE_FALSE(quantity.has_value());
+                auto price = result[2].to_optional<double>();
+                REQUIRE_FALSE(quantity.has_value());
                 result.step();
-                name = result[0];
-                REQUIRE(name.value == "ball");
-                REQUIRE_FALSE(name.null);
-                quantity = result[1];
-                REQUIRE(quantity.value == 2);
-                REQUIRE_FALSE(quantity.null);
-                price = result[2];
-                REQUIRE(price.value == Approx(1.23));
-                REQUIRE_FALSE(quantity.null);
+                name = result[0].to_optional<std::string>();
+                REQUIRE(*name == "ball");
+                REQUIRE(name.has_value());
+                quantity = result[1].to_optional<int>();
+                REQUIRE(*quantity == 2);
+                REQUIRE(quantity.has_value());
+                price = result[2].to_optional<double>();
+                REQUIRE(*price == Approx(1.23));
+                REQUIRE(price.has_value());
+                result.step();
+                name = result[0].to_optional<std::string>();
+                REQUIRE_FALSE(name.has_value());
+                quantity = result[1].to_optional<int>();
+                REQUIRE(*quantity == 3);
+                REQUIRE(quantity.has_value());
+                price = result[2].to_optional<double>();
+                REQUIRE_FALSE(price.has_value());
+            }
+        }
+    }
+}
+
+SCENARIO("results can be retrieved using stream operators")
+{
+    GIVEN("a database connection with a table created")
+    {
+        sqlitemm::Connection conn(":memory:");
+        REQUIRE_NOTHROW(conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);"));
+
+        WHEN("there is one row in the table")
+        {
+            REQUIRE_NOTHROW(conn.execute("INSERT INTO item (name, quantity, price) VALUES ('ball', 2, 1.23);"));
+
+            THEN("the row can be retrieved using stream operators")
+            {
+                auto statement = conn.prepare("SELECT name, quantity, price FROM item;");
+                auto result = statement.execute_query();
+                result.step();
+                std::string name;
+                int quantity;
+                double price;
+                result >> name >> quantity >> price;
+                REQUIRE(name == "ball");
+                REQUIRE(quantity == 2);
+                REQUIRE(price == Approx(1.23));
+            }
+        }
+
+        WHEN("there is a row with null values, another without null values, and another that is a mix")
+        {
+            REQUIRE_NOTHROW(conn.execute("INSERT INTO item (name, quantity, price) VALUES "
+                                         "(NULL, NULL, NULL), ('ball', 2, 1.23), (NULL, 3, NULL);"));
+
+            THEN("the rows can be retrieved using result fields to std::optional")
+            {
+                auto statement = conn.prepare("SELECT name, quantity, price FROM item;");
+                auto result = statement.execute_query();
+                result.step();
+                std::optional<std::string> name;
+                std::optional<int> quantity;
+                std::optional<double> price;
+                result >> name >> quantity >> price;
+                REQUIRE_FALSE(name.has_value());
+                REQUIRE_FALSE(quantity.has_value());
+                REQUIRE_FALSE(quantity.has_value());
+                result.step();
+                result >> name >> quantity >> price;
+                REQUIRE(*name == "ball");
+                REQUIRE(name.has_value());
+                REQUIRE(*quantity == 2);
+                REQUIRE(quantity.has_value());
+                REQUIRE(*price == Approx(1.23));
+                REQUIRE(price.has_value());
+                result.step();
+                result >> name >> quantity >> price;
+                REQUIRE_FALSE(name.has_value());
+                REQUIRE(*quantity == 3);
+                REQUIRE(quantity.has_value());
+                REQUIRE_FALSE(price.has_value());
             }
         }
     }
