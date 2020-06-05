@@ -45,3 +45,24 @@ TEST_CASE("TypeError")
         REQUIRE_THROWS_AS(result >> x, sqlitemm::TypeError);
     }
 }
+
+TEST_CASE("NullTypeError")
+{
+    sqlitemm::Connection conn(":memory:");
+    REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT);"
+                                 "INSERT INTO person (name) VALUES (NULL);"));
+    auto statement = conn.prepare("SELECT name FROM person");
+    auto result = statement.execute_query(true);
+    result.step();
+    int x;
+
+    SECTION("null type error on result field conversion")
+    {
+        REQUIRE_THROWS_AS(x = result[0], sqlitemm::NullTypeError);
+    }
+
+    SECTION("null type error on result conversion")
+    {
+        REQUIRE_THROWS_AS(result >> x, sqlitemm::NullTypeError);
+    }
+}
