@@ -233,6 +233,14 @@ TEST_CASE("Statement::operator<<")
     SECTION("NULL")
     {
         auto insert_statement = conn.prepare("INSERT INTO item (price) VALUES (:price)");
+        insert_statement << nullptr;
+        insert_statement.execute();
+        insert_statement.finalize();
+
+        auto select_statement = conn.prepare("SELECT 1 FROM item WHERE price IS NULL");
+        auto result = select_statement.execute_query();
+        REQUIRE(result.step());
+        REQUIRE(int(result[0]) == 1);
     }
 
     SECTION("INTEGER")
@@ -364,6 +372,14 @@ TEST_CASE("Statement::operator[](const char*)")
     SECTION("NULL")
     {
         auto insert_statement = conn.prepare("INSERT INTO item (price) VALUES (:price)");
+        insert_statement[":price"] = nullptr;
+        insert_statement.execute();
+        insert_statement.finalize();
+
+        auto select_statement = conn.prepare("SELECT 1 FROM item WHERE price IS NULL");
+        auto result = select_statement.execute_query();
+        REQUIRE(result.step());
+        REQUIRE(int(result[0]) == 1);
     }
 
     SECTION("INTEGER")
@@ -499,6 +515,14 @@ TEST_CASE("Statement::operator[](const std::string&)")
     SECTION("NULL")
     {
         auto insert_statement = conn.prepare("INSERT INTO item (price) VALUES (:price)");
+        insert_statement[std::string(":price")] = nullptr;
+        insert_statement.execute();
+        insert_statement.finalize();
+
+        auto select_statement = conn.prepare("SELECT 1 FROM item WHERE price IS NULL");
+        auto result = select_statement.execute_query();
+        REQUIRE(result.step());
+        REQUIRE(int(result[0]) == 1);
     }
 
     SECTION("INTEGER")
