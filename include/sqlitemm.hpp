@@ -954,10 +954,10 @@ namespace sqlitemm
         Result& operator>>(std::u16string& value);
 
         /**
-         * If the current field in the result row is NULL, this sets value.null to
-         * true. Otherwise this sets value.null to false, then reads and converts
-         * the current field to the type of value.value and stores it in
-         * value.value, after which it advances to the next field, if any.
+         * If the current field in the result row is NULL, this makes value an
+         * empty std::optional<T>. Otherwise reads and converts the current
+         * field to the type T and stores it in value. Always advances to the next
+         * field, if any.
          * Returns a reference to this Result object.
          */
         template<typename T>
