@@ -76,8 +76,18 @@ TEST_CASE("ResultField conversions")
         auto select_statement = conn.prepare("SELECT price FROM item");
         auto result = select_statement.execute_query();
         REQUIRE(result.step());
-        auto field_result = result[0].to_optional<double>();
-        REQUIRE_FALSE(field_result.has_value());
+
+        SECTION("optional")
+        {
+            auto field_result = result[0].to_optional<double>();
+            REQUIRE_FALSE(field_result.has_value());
+        }
+
+        SECTION("without strict typing")
+        {
+            double field_result = result[0];
+            REQUIRE(field_result == Approx(0));
+        }
     }
 
     SECTION("INTEGER")

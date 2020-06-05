@@ -282,9 +282,20 @@ TEST_CASE("Result conversions")
         auto select_statement = conn.prepare("SELECT price FROM item");
         auto result = select_statement.execute_query();
         REQUIRE(result.step());
-        std::optional<double> field_result;
-        result >> field_result;
-        REQUIRE_FALSE(field_result.has_value());
+
+        SECTION("optional")
+        {
+            std::optional<double> field_result;
+            result >> field_result;
+            REQUIRE_FALSE(field_result.has_value());
+        }
+
+        SECTION("without strict typing")
+        {
+            double field_result;
+            result >> field_result;
+            REQUIRE(field_result == Approx(0));
+        }
     }
 
     SECTION("INTEGER")
