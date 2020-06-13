@@ -1,5 +1,7 @@
 SQLitemm
 ========
+![C/C++ CI](https://github.com/amanda-wee/sqlitemm/workflows/C/C++%20CI/badge.svg)
+
 SQLitemm is a C++ wrapper interface for SQLite's C API. It is a non-compatible rewrite of the 2005 SQLitemm project that aimed to provide "resource encapsulation and management while attempting to maintain minimal deviation from the original C interface", except that the latter goal has less emphasis, with support for newer SQLite3 features in a post-C++11 world being the new additional goals.
 
 ### Classes to wrap SQLite resource objects:
