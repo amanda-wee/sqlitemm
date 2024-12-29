@@ -18,7 +18,7 @@ makefile_dir = $(realpath $(dir $(realpath $(makefile))))
 build = $(makefile_dir)/build
 src = $(makefile_dir)/src
 tests = $(makefile_dir)/tests
-include = $(makefile_dir)/include
+includes = $(makefile_dir)/include
 
 c_source_files = $(wildcard $(src)/*.c)
 cxx_source_files = $(wildcard $(src)/*.cpp)
@@ -28,7 +28,7 @@ cxx_objects = $(cxx_source_files:$(src)/%.cpp=$(build)/%.o)
 test_objects = $(test_source_files:$(tests)/%.cpp=$(build)/%.o)
 test_executable = $(build)/test.out
 
-CPPFLAGS = -I $(include)
+CPPFLAGS = -I $(includes)
 CFLAGS = -std=c11 -Wall -g
 CXXFLAGS = -std=c++17 -Wall -pedantic -g
 LDLIBS = -lpthread -ldl
