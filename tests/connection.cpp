@@ -62,7 +62,6 @@ TEST_CASE("changes")
 
     SECTION("insert one row")
     {
-        
         conn.execute("INSERT INTO person (name) VALUES ('Alice');");
         REQUIRE(conn.changes() == 1);
     }

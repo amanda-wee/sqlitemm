@@ -18,7 +18,7 @@
 #include "sqlitemm.hpp"
 #include "catch.hpp"
 
-SCENARIO("prepared statement can bind parameters using stream operators")
+SCENARIO("prepared statement can bind nameless parameters using stream operators")
 {
     GIVEN("a database connection with a table created")
     {
@@ -58,7 +58,47 @@ SCENARIO("prepared statement can bind parameters using stream operators")
     }
 }
 
-SCENARIO("prepared statement can bind parameters using indexed assignment")
+SCENARIO("prepared statement can bind named parameters using stream operators")
+{
+    GIVEN("a database connection with a table created")
+    {
+        sqlitemm::Connection conn(":memory:");
+        REQUIRE_NOTHROW(conn.execute("CREATE TABLE result (id INTEGER PRIMARY KEY, name TEXT, games INTEGER, score REAL)"));
+
+        WHEN("rows are inserted")
+        {
+            auto insert_statement = conn.prepare("INSERT INTO result (name, games, score) VALUES (:name, :age, :score)");
+            REQUIRE_NOTHROW(insert_statement << "Alice" << 20 << 12.3);
+            REQUIRE_NOTHROW(insert_statement.execute());
+            REQUIRE_NOTHROW(insert_statement.reset());
+            REQUIRE_NOTHROW(insert_statement << "Bob" << 25 << 11.5);
+            REQUIRE_NOTHROW(insert_statement.execute());
+            REQUIRE(insert_statement.finalize());
+
+            THEN("the same rows can be retrieved")
+            {
+                auto select_statement = conn.prepare("SELECT name, games, score FROM result");
+                auto result = select_statement.execute_query();
+                std::string name;
+                int games;
+                double score;
+                REQUIRE(result.step());
+                REQUIRE_NOTHROW(result >> name >> games >> score);
+                REQUIRE(name == "Alice");
+                REQUIRE(games == 20);
+                REQUIRE(score == Approx(12.3));
+                REQUIRE(result.step());
+                REQUIRE_NOTHROW(result >> name >> games >> score);
+                REQUIRE(name == "Bob");
+                REQUIRE(games == 25);
+                REQUIRE(score == Approx(11.5));
+                REQUIRE_FALSE(result.step());
+            }
+        }
+    }
+}
+
+SCENARIO("prepared statement can bind named parameters using indexed assignment")
 {
     GIVEN("a database connection with a table created")
     {

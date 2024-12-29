@@ -86,6 +86,33 @@ SCENARIO("transactions are used to group statements")
             }
         }
 
+        WHEN("the transaction is not committed")
+        {
+            try
+            {
+                auto transaction = conn.begin_transaction();
+                auto insert_statement = conn.prepare("INSERT INTO result (name, games, score) VALUES (?, ?, ?)");
+                insert_statement << "Alice" << 20 << 12.3;
+                insert_statement.execute();
+                insert_statement.reset();
+                throw std::runtime_error("test exception");
+                insert_statement << "Bob" << 25 << 11.5;
+                insert_statement.execute();
+                insert_statement.finalize();
+            }
+            catch (const std::exception& e)
+            {
+                // do nothing
+            }
+
+            THEN("none of the data will be inserted")
+            {
+                auto select_statement = conn.prepare("SELECT name, games, score FROM result");
+                auto result = select_statement.execute_query();
+                REQUIRE_FALSE(result.step());
+            }
+        }
+
         WHEN("a transaction is reused without incident")
         {
             {

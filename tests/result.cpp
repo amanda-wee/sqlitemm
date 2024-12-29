@@ -147,22 +147,25 @@ SCENARIO("results can be retrieved using stream operators")
     }
 }
 
-class Item
+namespace
 {
-public:
-    Item() = default;
-    Item(const std::string& name, int quantity, double price) : name(name), quantity(quantity), price(price) {}
-    Item(const sqlitemm::Result& result)
+    class Item
     {
-        name = std::string(result[0]);
-        quantity = result[1];
-        price = result[2];
-    }
+    public:
+        Item() = default;
+        Item(const std::string& name, int quantity, double price) : name(name), quantity(quantity), price(price) {}
+        Item(const sqlitemm::Result& result)
+        {
+            name = std::string(result[0]);
+            quantity = result[1];
+            price = result[2];
+        }
 
-    std::string name;
-    int quantity;
-    double price;
-};
+        std::string name;
+        int quantity;
+        double price;
+    };
+}
 
 SCENARIO("results can be retrieved using result iterators")
 {
