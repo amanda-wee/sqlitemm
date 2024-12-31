@@ -21,7 +21,9 @@ SCENARIO("transactions are used to group statements")
     GIVEN("a database connection with a table created")
     {
         sqlitemm::Connection conn(":memory:");
-        REQUIRE_NOTHROW(conn.execute("CREATE TABLE result (id INTEGER PRIMARY KEY, name TEXT, games INTEGER, score REAL)"));
+        REQUIRE_NOTHROW(
+            conn.execute("CREATE TABLE result (id INTEGER PRIMARY KEY, name TEXT, games INTEGER, score REAL)")
+        );
 
         WHEN("insert statements are executed without incident")
         {

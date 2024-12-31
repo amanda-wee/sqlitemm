@@ -23,7 +23,9 @@ SCENARIO("prepared statement can bind nameless parameters using stream operators
     GIVEN("a database connection with a table created")
     {
         sqlitemm::Connection conn(":memory:");
-        REQUIRE_NOTHROW(conn.execute("CREATE TABLE result (id INTEGER PRIMARY KEY, name TEXT, games INTEGER, score REAL)"));
+        REQUIRE_NOTHROW(
+            conn.execute("CREATE TABLE result (id INTEGER PRIMARY KEY, name TEXT, games INTEGER, score REAL)")
+        );
 
         WHEN("rows are inserted")
         {
@@ -63,11 +65,15 @@ SCENARIO("prepared statement can bind named parameters using stream operators")
     GIVEN("a database connection with a table created")
     {
         sqlitemm::Connection conn(":memory:");
-        REQUIRE_NOTHROW(conn.execute("CREATE TABLE result (id INTEGER PRIMARY KEY, name TEXT, games INTEGER, score REAL)"));
+        REQUIRE_NOTHROW(
+            conn.execute("CREATE TABLE result (id INTEGER PRIMARY KEY, name TEXT, games INTEGER, score REAL)")
+        );
 
         WHEN("rows are inserted")
         {
-            auto insert_statement = conn.prepare("INSERT INTO result (name, games, score) VALUES (:name, :age, :score)");
+            auto insert_statement = conn.prepare(
+                "INSERT INTO result (name, games, score) VALUES (:name, :age, :score)"
+            );
             REQUIRE_NOTHROW(insert_statement << "Alice" << 20 << 12.3);
             REQUIRE_NOTHROW(insert_statement.execute());
             REQUIRE_NOTHROW(insert_statement.reset());
@@ -103,11 +109,15 @@ SCENARIO("prepared statement can bind named parameters using indexed assignment"
     GIVEN("a database connection with a table created")
     {
         sqlitemm::Connection conn(":memory:");
-        REQUIRE_NOTHROW(conn.execute("CREATE TABLE result (id INTEGER PRIMARY KEY, name TEXT, games INTEGER, score REAL)"));
+        REQUIRE_NOTHROW(
+            conn.execute("CREATE TABLE result (id INTEGER PRIMARY KEY, name TEXT, games INTEGER, score REAL)")
+        );
 
         WHEN("rows are inserted")
         {
-            auto insert_statement = conn.prepare("INSERT INTO result (name, games, score) VALUES (:name, :age, :score)");
+            auto insert_statement = conn.prepare(
+                "INSERT INTO result (name, games, score) VALUES (:name, :age, :score)"
+            );
             insert_statement[":name"] = "Alice";
             insert_statement[":age"] = 20;
             insert_statement[":score"] = 12.3;
@@ -268,7 +278,9 @@ namespace
 TEST_CASE("Statement::operator<<")
 {
     sqlitemm::Connection conn(":memory:");
-    REQUIRE_NOTHROW(conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);"));
+    REQUIRE_NOTHROW(
+        conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);")
+    );
 
     SECTION("NULL")
     {
@@ -443,7 +455,9 @@ TEST_CASE("Statement::operator<<")
 TEST_CASE("Statement::operator[](const char*)")
 {
     sqlitemm::Connection conn(":memory:");
-    REQUIRE_NOTHROW(conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);"));
+    REQUIRE_NOTHROW(
+        conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);")
+    );
 
     SECTION("NULL")
     {
@@ -622,7 +636,9 @@ TEST_CASE("Statement::operator[](const char*)")
 TEST_CASE("Statement::operator[](const std::string&)")
 {
     sqlitemm::Connection conn(":memory:");
-    REQUIRE_NOTHROW(conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);"));
+    REQUIRE_NOTHROW(
+        conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);")
+    );
 
     SECTION("NULL")
     {

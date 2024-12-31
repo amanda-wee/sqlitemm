@@ -67,7 +67,9 @@ namespace
 TEST_CASE("ResultField conversions")
 {
     sqlitemm::Connection conn(":memory:");
-    REQUIRE_NOTHROW(conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);"));
+    REQUIRE_NOTHROW(
+        conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);")
+    );
 
     SECTION("NULL")
     {

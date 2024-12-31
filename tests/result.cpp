@@ -27,7 +27,9 @@ SCENARIO("results can be retrieved using result fields")
     GIVEN("a database connection with a table created")
     {
         sqlitemm::Connection conn(":memory:");
-        REQUIRE_NOTHROW(conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);"));
+        REQUIRE_NOTHROW(
+            conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);")
+        );
 
         WHEN("there is one row in the table")
         {
@@ -91,7 +93,9 @@ SCENARIO("results can be retrieved using stream operators")
     GIVEN("a database connection with a table created")
     {
         sqlitemm::Connection conn(":memory:");
-        REQUIRE_NOTHROW(conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);"));
+        REQUIRE_NOTHROW(
+            conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);")
+        );
 
         WHEN("there is one row in the table")
         {
@@ -182,7 +186,9 @@ SCENARIO("results can be retrieved using result iterators")
     GIVEN("a database connection with a table created")
     {
         sqlitemm::Connection conn(":memory:");
-        REQUIRE_NOTHROW(conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);"));
+        REQUIRE_NOTHROW(
+            conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);")
+        );
 
         WHEN("there are two rows in the table")
         {
@@ -301,7 +307,9 @@ namespace
 TEST_CASE("Result conversions")
 {
     sqlitemm::Connection conn(":memory:");
-    REQUIRE_NOTHROW(conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);"));
+    REQUIRE_NOTHROW(
+        conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);")
+    );
 
     SECTION("NULL")
     {
