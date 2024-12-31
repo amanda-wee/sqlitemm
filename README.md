@@ -54,11 +54,8 @@ std::vector<GameResult> retrieve_results(double threshold)
     statement[":score"] = threshold;
     auto result = statement.execute_query();
     return std::vector<GameResult>(
-        result.begin<GameResult>([](sqlitemm::Result& result_row) {
-            std::string name;
-            double score;
-            result_row >> name >> score;
-            return GameResult(name, score);
+        result.begin<GameResult>([](auto& result_row) {
+            return GameResult(result_row[0], result_row[1]);
         }),
         result.end()
     );

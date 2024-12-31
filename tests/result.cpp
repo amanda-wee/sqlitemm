@@ -238,6 +238,26 @@ SCENARIO("results can be retrieved using result iterators")
                 REQUIRE(items[1].price == Approx(2.05));
             }
 
+            THEN("the rows can be retrieved using result iterators obtained from begin() and end() with a result row "
+                 "retrieval lambda function")
+            {
+                auto statement = conn.prepare("SELECT name, quantity, price FROM item;");
+                auto result = statement.execute_query();
+                auto items = std::vector<Item>(
+                    result.begin<Item>([](auto& result_row) {
+                        return Item(result_row[0], result_row[1], result_row[2]);
+                    }),
+                    result.end<Item>()
+                );
+                REQUIRE(items.size() == 2);
+                REQUIRE(items[0].name == "ball");
+                REQUIRE(items[0].quantity == 2);
+                REQUIRE(items[0].price == Approx(1.23));
+                REQUIRE(items[1].name == "cup");
+                REQUIRE(items[1].quantity == 5);
+                REQUIRE(items[1].price == Approx(2.05));
+            }
+
             THEN("the rows can be retrieved using a range based for loop")
             {
                 auto statement = conn.prepare("SELECT name, quantity, price FROM item;");
