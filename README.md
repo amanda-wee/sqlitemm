@@ -47,31 +47,24 @@ Example Usage
 -------------
 If we imagine a one-off retrieval of some unspecified game results consisting of names and corresponding scores from a table where scores are greater than some threshold parameter:
 ```C++
-std::vector<Result> retrieve_results(double threshold)
+std::vector<GameResult> retrieve_results(double threshold)
 {
-    std::vector<Result> results;
-    try
-    {
-        sqlitemm::Connection connection(DATABASE_FILENAME);
-        auto statement = connection.prepare("SELECT name, score FROM result WHERE score > :score");
-        statement[":score"] = threshold;
-        auto result = statement.execute_query();
-        std::string name;
-        double score;
-        while (result.step())
-        {
-            result >> name >> score;
-            results.emplace_back(name, score);
-        }
-    }
-    catch (const sqlitemm::Error& e)
-    {
-        // Perhaps we just want to translate the exception:
-        throw SomeException(e.what());
-    }
-    return results;
+    auto connection = sqlitemm::Connection(DATABASE_FILENAME);
+    auto statement = connection.prepare("SELECT name, score FROM result WHERE score > :score");
+    statement[":score"] = threshold;
+    auto result = statement.execute_query();
+    return std::vector<GameResult>(
+        result.begin<GameResult>([](sqlitemm::Result& result_row) {
+            std::string name;
+            double score;
+            result_row >> name >> score;
+            return GameResult(name, score);
+        }),
+        result.end()
+    );
 }
 ```
+If there is a database-related error, an exception of type `sqlitemm::Error` will be thrown.
 
 Legal
 -----

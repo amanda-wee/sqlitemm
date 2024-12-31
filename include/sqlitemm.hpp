@@ -421,6 +421,7 @@ namespace sqlitemm
 
         /**
          * Finalizes the prepared statement.
+         * This effectively destroys the prepared statement.
          */
         bool finalize() noexcept;
 
