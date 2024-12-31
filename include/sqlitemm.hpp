@@ -714,7 +714,7 @@ namespace sqlitemm
          *
          * The function object is expected to copy the string.
          */
-        void as_text(std::function<void(const unsigned char*, int)> retrieval_func)
+        void as_text(std::function<void(const unsigned char*, int)> retrieval_func) const
         {
             auto value = sqlite3_column_text(stmt, index);
             retrieval_func(value, sqlite3_column_bytes(stmt, index));
@@ -729,7 +729,7 @@ namespace sqlitemm
          *
          * The function object is expected to copy the string.
          */
-        void as_text16(std::function<void(const void*, int)> retrieval_func)
+        void as_text16(std::function<void(const void*, int)> retrieval_func) const
         {
             auto value = sqlite3_column_text16(stmt, index);
             retrieval_func(value, sqlite3_column_bytes16(stmt, index));
@@ -743,7 +743,7 @@ namespace sqlitemm
          *
          * The function object is expected to copy the bytes of the BLOB.
          */
-        void as_blob(std::function<void(const void*, int)> retrieval_func)
+        void as_blob(std::function<void(const void*, int)> retrieval_func) const
         {
             auto value = sqlite3_column_blob(stmt, index);
             retrieval_func(value, sqlite3_column_bytes(stmt, index));
@@ -826,7 +826,7 @@ namespace sqlitemm
          */
         template<typename T>
         ResultIterator<T> begin(
-            std::function<T(Result&)> retrieval_func = [](Result& result) -> T { return T{result}; }
+            std::function<T(Result&)> retrieval_func = [](Result& result) -> T { return T(result); }
         )
         {
             return ResultIterator<T>(*this, retrieval_func);
@@ -1075,7 +1075,7 @@ namespace sqlitemm
          */
         explicit ResultIterator(
             Result& result_,
-            retrieval_function_type retrieval_func = [](Result& result) -> T { return T{result}; }
+            retrieval_function_type retrieval_func = [](Result& result) -> T { return T(result); }
         ) : result(&result_), retrieval_function(retrieval_func)
         {
             if (!result->step())
