@@ -19,6 +19,7 @@
 #include <cassert>
 #include <cstddef>
 #include <exception>
+#include <functional>
 #include <iterator>
 #include <memory>
 #include <optional>
@@ -713,8 +714,7 @@ namespace sqlitemm
          *
          * The function object is expected to copy the string.
          */
-        template<typename F>
-        void as_text(F retrieval_func)
+        void as_text(std::function<void(const unsigned char*, int)> retrieval_func)
         {
             auto value = sqlite3_column_text(stmt, index);
             retrieval_func(value, sqlite3_column_bytes(stmt, index));
@@ -723,14 +723,13 @@ namespace sqlitemm
         /**
          * Reads the field as UTF-16 encoded text, done by invoking the
          * function object argument with two arguments:
-         *   * the field in the result row as a const unsigned void*
+         *   * the field in the result row as a const void*
          *   * the number of bytes of the field in the result row,
          *     excluding the terminating null character
          *
          * The function object is expected to copy the string.
          */
-        template<typename F>
-        void as_text16(F retrieval_func)
+        void as_text16(std::function<void(const void*, int)> retrieval_func)
         {
             auto value = sqlite3_column_text16(stmt, index);
             retrieval_func(value, sqlite3_column_bytes16(stmt, index));
@@ -739,13 +738,12 @@ namespace sqlitemm
         /**
          * Reads the field as a BLOB, done by invoking the function object
          * argument with two arguments:
-         *   * the field in the result row as a const unsigned void*
+         *   * the field in the result row as a const void*
          *   * the number of bytes of the field in the result row
          *
          * The function object is expected to copy the bytes of the BLOB.
          */
-        template<typename F>
-        void as_blob(F retrieval_func)
+        void as_blob(std::function<void(const void*, int)> retrieval_func)
         {
             auto value = sqlite3_column_blob(stmt, index);
             retrieval_func(value, sqlite3_column_bytes(stmt, index));
@@ -827,9 +825,11 @@ namespace sqlitemm
          * default to initialising an object of type T with the result object.
          */
         template<typename T>
-        ResultIterator<T> begin(T retrieval_function(Result& result) = [](Result& result) { return T(result); })
+        ResultIterator<T> begin(
+            std::function<T(Result&)> retrieval_func = [](Result& result) -> T { return T{result}; }
+        )
         {
-            return ResultIterator<T>(*this, retrieval_function);
+            return ResultIterator<T>(*this, retrieval_func);
         }
 
         /**
@@ -986,12 +986,12 @@ namespace sqlitemm
          *   * the current field in the result row as a const unsigned char*
          *   * the number of bytes of the current field in the result row,
          *     excluding the terminating null character
+         *
          * Advances to the next field, if any.
          *
          * The function object is expected to copy the string.
          */
-        template<typename F>
-        void as_text(F retrieval_func)
+        void as_text(std::function<void(const unsigned char*, int)> retrieval_func)
         {
             assert(counter < column_count);
             (*this)[counter++].as_text(retrieval_func);
@@ -1000,15 +1000,15 @@ namespace sqlitemm
         /**
          * Reads the current field as UTF-16 encoded text, done by invoking the
          * function object argument with two arguments:
-         *   * the current field in the result row as a const unsigned void*
+         *   * the current field in the result row as a const void*
          *   * the number of bytes of the current field in the result row,
          *     excluding the terminating null character
+         *
          * Advances to the next field, if any.
          *
          * The function object is expected to copy the string.
          */
-        template<typename F>
-        void as_text16(F retrieval_func)
+        void as_text16(std::function<void(const void*, int)> retrieval_func)
         {
             assert(counter < column_count);
             (*this)[counter++].as_text16(retrieval_func);
@@ -1017,14 +1017,14 @@ namespace sqlitemm
         /**
          * Reads the current field as a BLOB, done by invoking the function
          * object argument with two arguments:
-         *   * the current field in the result row as a const unsigned void*
+         *   * the current field in the result row as a const void*
          *   * the number of bytes of the current field in the result row
+         *
          * Advances to the next field, if any.
          *
          * The function object is expected to copy the bytes of the BLOB.
          */
-        template<typename F>
-        void as_blob(F retrieval_func)
+        void as_blob(std::function<void(const void*, int)> retrieval_func)
         {
             assert(counter < column_count);
             (*this)[counter++].as_blob(retrieval_func);
@@ -1056,7 +1056,7 @@ namespace sqlitemm
         using difference_type = std::ptrdiff_t;
         using pointer = T*;
         using reference = T&;
-        using retrieval_function_type = T(*)(Result&);
+        using retrieval_function_type = std::function<T(Result&)>;
 
         /**
          * Constructs an empty result iterator, i.e., denoting the end of the
@@ -1073,9 +1073,9 @@ namespace sqlitemm
          *
          * Note that this means stepping through the result set once.
          */
-        ResultIterator(
+        explicit ResultIterator(
             Result& result_,
-            retrieval_function_type retrieval_func = [](Result& result) { return T(result); }
+            retrieval_function_type retrieval_func = [](Result& result) -> T { return T{result}; }
         ) : result(&result_), retrieval_function(retrieval_func)
         {
             if (!result->step())

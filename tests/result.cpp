@@ -159,7 +159,7 @@ namespace
     public:
         Item() = default;
         Item(const std::string& name, int quantity, double price) : name(name), quantity(quantity), price(price) {}
-        Item(const sqlitemm::Result& result)
+        explicit Item(const sqlitemm::Result& result)
         {
             name = std::string(result[0]);
             quantity = result[1];
