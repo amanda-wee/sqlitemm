@@ -822,11 +822,14 @@ namespace sqlitemm
         /**
          * Returns a result iterator for T that points to the first row of the
          * result set.
+         * If the result row retrieval function is supplied, then that will be
+         * used to retrieve the row as an object of type T. Otherwise, it will
+         * default to initialising an object of type T with the result object.
          */
         template<typename T>
-        ResultIterator<T> begin()
+        ResultIterator<T> begin(T retrieval_function(Result& result) = [](Result& result) { return T(result); })
         {
-            return ResultIterator<T>(*this);
+            return ResultIterator<T>(*this, retrieval_function);
         }
 
         /**
@@ -1053,6 +1056,7 @@ namespace sqlitemm
         using difference_type = std::ptrdiff_t;
         using pointer = T*;
         using reference = T&;
+        using retrieval_function_type = T(*)(Result&);
 
         /**
          * Constructs an empty result iterator, i.e., denoting the end of the
@@ -1062,10 +1066,17 @@ namespace sqlitemm
 
         /**
          * Constructs an iterator to the first row of the result set.
+         * If the result row retrieval function is supplied, then that will be
+         * used to retrieve the row that the iterator points to as an object
+         * of type T. Otherwise, it will default to initialising an object of
+         * type T with the result object.
          *
          * Note that this means stepping through the result set once.
          */
-        ResultIterator(Result& result_) : result(&result_)
+        ResultIterator(
+            Result& result_,
+            retrieval_function_type retrieval_func = [](Result& result) { return T(result); }
+        ) : result(&result_), retrieval_function(retrieval_func)
         {
             if (!result->step())
             {
@@ -1074,12 +1085,12 @@ namespace sqlitemm
         }
 
         /**
-         * Returns an object of type T initialised with the result row that this
+         * Returns an object of type T retrieved from the result row that this
          * iterator points to.
          */
         T operator*() const
         {
-            return T(*result);
+            return retrieval_function(*result);
         }
 
         /**
@@ -1124,6 +1135,7 @@ namespace sqlitemm
         }
     private:
         Result* result = nullptr;
+        retrieval_function_type retrieval_function = nullptr;
     };
 
     /**

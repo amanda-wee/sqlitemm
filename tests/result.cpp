@@ -17,6 +17,7 @@
 #include <array>
 #include <optional>
 #include <string>
+#include <tuple>
 #include <vector>
 #include "sqlitemm.hpp"
 #include "catch.hpp"
@@ -165,6 +166,15 @@ namespace
         int quantity;
         double price;
     };
+
+    Item result_row_to_item(sqlitemm::Result& result)
+    {
+        std::string name;
+        int quantity;
+        double price;
+        result >> name >> quantity >> price;
+        return Item(name, quantity, price);
+    }
 }
 
 SCENARIO("results can be retrieved using result iterators")
@@ -198,6 +208,21 @@ SCENARIO("results can be retrieved using result iterators")
                 auto statement = conn.prepare("SELECT name, quantity, price FROM item;");
                 auto result = statement.execute_query();
                 std::vector<Item> items(result.begin<Item>(), result.end<Item>());
+                REQUIRE(items.size() == 2);
+                REQUIRE(items[0].name == "ball");
+                REQUIRE(items[0].quantity == 2);
+                REQUIRE(items[0].price == Approx(1.23));
+                REQUIRE(items[1].name == "cup");
+                REQUIRE(items[1].quantity == 5);
+                REQUIRE(items[1].price == Approx(2.05));
+            }
+
+            THEN("the rows can be retrieved using result iterators obtained from begin() and end() with a result row "
+                 "retrieval function")
+            {
+                auto statement = conn.prepare("SELECT name, quantity, price FROM item;");
+                auto result = statement.execute_query();
+                auto items = std::vector<Item>(result.begin<Item>(result_row_to_item), result.end<Item>());
                 REQUIRE(items.size() == 2);
                 REQUIRE(items[0].name == "ball");
                 REQUIRE(items[0].quantity == 2);
