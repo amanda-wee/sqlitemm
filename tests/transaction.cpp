@@ -220,5 +220,18 @@ SCENARIO("transactions are used to group statements")
                 REQUIRE_FALSE(result.step());
             }
         }
+
+        WHEN("a transaction is committed without any statements executed")
+        {
+            {
+                auto transaction = conn.begin_transaction();
+                conn.prepare("INSERT INTO result (name, games, score) VALUES (?, ?, ?)");
+                transaction.commit();
+            }
+            THEN("the connection shows no changes")
+            {
+                REQUIRE(conn.changes() == 0);
+            }
+        }
     }
 }
