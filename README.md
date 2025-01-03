@@ -63,6 +63,8 @@ std::vector<GameResult> retrieve_results(double threshold)
 ```
 If there is a database-related error, an exception of type `sqlitemm::Error` will be thrown.
 
+Additional usage examples can be found in the examples folder.
+
 Legal
 -----
 Copyright &copy; 2020 Amanda Wee
