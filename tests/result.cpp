@@ -517,10 +517,10 @@ TEST_CASE("Result conversions")
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
             decltype(value) field_result;
-            result.as_text([&field_result](auto value, int num_bytes) {
+            result.as_blob([&field_result](auto value, int num_bytes) {
                 REQUIRE(num_bytes == sizeof(field_result));
-                auto p = reinterpret_cast<const char*>(value);
-                std::copy(p, p + num_bytes, reinterpret_cast<char*>(&field_result));
+                auto p = reinterpret_cast<const int*>(value);
+                std::copy(p, p + field_result.size(), field_result.begin());
             });
             REQUIRE(field_result == value);
         }
