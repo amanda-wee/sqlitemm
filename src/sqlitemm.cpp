@@ -116,7 +116,9 @@ namespace sqlitemm
             if (strict_typing && column_type != expected_column_type)
             {
                 std::ostringstream ss;
-                ss << "expected result field to be of " << get_column_type_name(expected_column_type) << " type but the value was ";
+                ss << "expected result field to be of "
+                   << get_column_type_name(expected_column_type)
+                   << " type but the value was ";
 
                 if (column_type == SQLITE_NULL)
                 {
@@ -368,13 +370,17 @@ namespace sqlitemm
 
         void bind_parameter(sqlite3_stmt* stmt, int index, const std::string& value)
         {
-            int result_code = sqlite3_bind_text(stmt, index, &value[0], static_cast<int>(value.length()), SQLITE_STATIC);
+            int result_code = sqlite3_bind_text(
+                stmt, index, &value[0], static_cast<int>(value.length()), SQLITE_STATIC
+            );
             check_result_ok(stmt, result_code);
         }
 
         void bind_parameter(sqlite3_stmt* stmt, int index, std::string&& value)
         {
-            int result_code = sqlite3_bind_text(stmt, index, &value[0], static_cast<int>(value.length()), SQLITE_TRANSIENT);
+            int result_code = sqlite3_bind_text(
+                stmt, index, &value[0], static_cast<int>(value.length()), SQLITE_TRANSIENT
+            );
             check_result_ok(stmt, result_code);
         }
 

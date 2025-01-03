@@ -67,7 +67,7 @@ Additional usage examples can be found in the examples folder.
 
 Legal
 -----
-Copyright &copy; 2020 Amanda Wee
+Copyright &copy; 2025 Amanda Wee
 
 SQLitemm is licensed under the Apache License, Version 2.0 (the "License"); you may not use the files of SQLitemm except in compliance with the License. You may obtain a copy of the License at:
 
