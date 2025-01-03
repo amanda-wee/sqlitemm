@@ -12,6 +12,7 @@ SQLitemm is a C++ wrapper interface for SQLite's C API. It is a non-compatible r
 * `Result`: a result object that abstracts out the result retrieval aspects of `sqlite3_stmt`
 * `Transaction`: a transaction object to automatically rollback when a C++ exception is thrown or propagated should the transaction be not yet committed or already rolled back
 * `Error`: an exception base class for SQLite error codes; derived classes are provided where they are likely to be useful to be handled separately
+* `Blob`: a blob object that enables incremental I/O with BLOBs
 
 ### Notable features:
 * `ResultIterator`: an input iterator that allows for iterating over result rows into objects of arbitrary type as long as the type provides a constructor that processes a `Result` as a row
@@ -23,7 +24,6 @@ SQLitemm is a C++ wrapper interface for SQLite's C API. It is a non-compatible r
 * `valueA = result[0];`: implicitly convert the fields of a result row by index to the desired type
 * `auto valueA = result[0].to_optional<int>();`: convert the fields of a result row to `std::optional`, hence allowing for fields that might contain `NULL` (also available for "streaming" the fields of a result row)
 * Support for retrieving arbitrary UTF-8 text, UTF-16 text, and BLOB values by providing function objects to perform the retrieval
-* Support for BLOBs with incremental I/O
 * Optional "strict typing" on a per-query basis, allowing for the prevention of SQLite automatic type conversions across the SQLite fundamental types when retrieving values
 
 ### Future work:
