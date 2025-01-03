@@ -1,7 +1,7 @@
 /************************************************************************************************************
  * SQLitemm tests source file primarily for testing sqlitemm::Connection
  *
- * Copyright 2020 Amanda Wee
+ * Copyright 2025 Amanda Wee
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
@@ -16,93 +16,145 @@
 #include "sqlitemm.hpp"
 #include "catch.hpp"
 
-TEST_CASE("in-memory database can be opened and closed")
+SCENARIO("in-memory database can be opened and closed")
 {
-    SECTION("using an empty database connection")
+    WHEN("using an empty database connection")
     {
         sqlitemm::Connection conn;
 
-        REQUIRE_NOTHROW(conn.open(":memory:"));
-        REQUIRE_NOTHROW(conn.close());
+        THEN("open and close can be called without exceptions thrown")
+        {
+            REQUIRE_NOTHROW(conn.open(":memory:"));
+            REQUIRE_NOTHROW(conn.close());
+        }
     }
 
-    SECTION("using a constructor")
+    WHEN("using a constructor")
     {
-        REQUIRE_NOTHROW([]() {
-            sqlitemm::Connection conn(":memory:");
-        }());
+        THEN("constructor can be invoked without exception thrown")
+        {
+            REQUIRE_NOTHROW([]() {
+                sqlitemm::Connection conn(":memory:");
+            }());
+        }
     }
 }
 
-TEST_CASE("extended result codes are enabled")
+SCENARIO("extended result codes are enabled")
 {
     sqlitemm::Connection conn(":memory:");
-    REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT UNIQUE);"
-                                 "INSERT INTO person (name) VALUES ('Alice');"));
-    try
+
+    GIVEN("a table with a unique row")
     {
-        conn.execute("INSERT INTO person (name) VALUES ('Alice');");
-        REQUIRE(!"exception must be thrown");
-    }
-    catch (const sqlitemm::Error& e)
-    {
-        REQUIRE(e.code() == SQLITE_CONSTRAINT_UNIQUE);
+        REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT UNIQUE);"
+                                    "INSERT INTO person (name) VALUES ('Alice');"));
+
+        WHEN("a duplicate row is inserted")
+        {
+            THEN("sqlitemm::Error is thrown with the extended result code")
+            {
+                try
+                {
+                    conn.execute("INSERT INTO person (name) VALUES ('Alice');");
+                    REQUIRE(!"exception must be thrown");
+                }
+                catch (const sqlitemm::Error& e)
+                {
+                    REQUIRE(e.code() == SQLITE_CONSTRAINT_UNIQUE);
+                }
+            }
+        }
     }
 }
 
-TEST_CASE("changes")
+SCENARIO("changes member function is called")
 {
     sqlitemm::Connection conn(":memory:");
-    REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT);"));
 
-    SECTION("no changes")
+    GIVEN("an empty table")
     {
-        REQUIRE(conn.changes() == 0);
-    }
+        REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT);"));
 
-    SECTION("insert one row")
-    {
-        conn.execute("INSERT INTO person (name) VALUES ('Alice');");
-        REQUIRE(conn.changes() == 1);
-    }
+        WHEN("there are no changes")
+        {
+            THEN("changes member function reports 0 changes")
+            {
+                REQUIRE(conn.changes() == 0);
+            }
+        }
 
-    SECTION("insert three rows then delete two rows")
-    {
-        conn.execute("INSERT INTO person (name) VALUES ('Alice'), ('Bob'), ('Charlie');");
-        REQUIRE(conn.changes() == 3);
-        conn.execute("DELETE FROM person WHERE name IN ('Alice', 'Bob');");
-        REQUIRE(conn.changes() == 2);
+        WHEN("one row is inserted")
+        {
+            conn.execute("INSERT INTO person (name) VALUES ('Alice');");
+
+            THEN("1 change is reported")
+            {
+                REQUIRE(conn.changes() == 1);
+            }
+        }
+
+        WHEN("three rows are inserted")
+        {
+            conn.execute("INSERT INTO person (name) VALUES ('Alice'), ('Bob'), ('Charlie');");
+
+            THEN("3 changes are reported")
+            {
+                REQUIRE(conn.changes() == 3);
+
+                WHEN("two rows are deleted")
+                {
+                    conn.execute("DELETE FROM person WHERE name IN ('Alice', 'Bob');");
+
+                    THEN("two rows are reported")
+                    {
+                        REQUIRE(conn.changes() == 2);
+                    }
+                }
+            }
+        }
     }
 }
 
-TEST_CASE("execute")
+SCENARIO("execute member function is called")
 {
-    SECTION("using valid SQL")
+    sqlitemm::Connection conn(":memory:");
+
+    WHEN("valid SQL is used")
     {
-        sqlitemm::Connection conn(":memory:");
         REQUIRE_NOTHROW(conn.execute("SELECT DATE('2001-01-01');"));
     }
 
-    SECTION("using invalid SQL")
+    WHEN("invalid SQL is used")
     {
-        sqlitemm::Connection conn(":memory:");
         REQUIRE_THROWS(conn.execute("SELECT;"));
     }
 }
 
-TEST_CASE("last_insert_rowid")
+SCENARIO("last_insert_rowid member function is called")
 {
     sqlitemm::Connection conn(":memory:");
-    REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT UNIQUE);"));
 
-    SECTION("no successful inserts")
+    GIVEN("an empty table")
     {
-        REQUIRE(conn.last_insert_rowid() == 0);
-    }
+        REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT UNIQUE);"));
 
-    SECTION("one successful insert")
-    {
-        conn.execute("INSERT INTO person (name) VALUES ('Alice');");
-        REQUIRE(conn.last_insert_rowid() == 1);
+        WHEN("there have been no successful inserts")
+        {
+            THEN("the last insert rowid is reported to be 0")
+            {
+                REQUIRE(conn.last_insert_rowid() == 0);
+            }
+            
+        }
+
+        WHEN("there has been one successful insert")
+        {
+            conn.execute("INSERT INTO person (name) VALUES ('Alice');");
+
+            THEN("thr last insert rowid is reported to be 1")
+            {
+                REQUIRE(conn.last_insert_rowid() == 1);
+            }
+        }
     }
 }
