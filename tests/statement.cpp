@@ -471,6 +471,67 @@ TEST_CASE("Statement::operator<<")
             });
         }
     }
+
+    SECTION("std::optional")
+    {
+        auto insert_statement = conn.prepare("INSERT INTO item (name) VALUES (:name)");
+
+        SECTION("INT NULL")
+        {
+            std::optional<int> value;
+            insert_statement << value;
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            auto result_value = result[0].to_optional<int>();
+            REQUIRE_FALSE(result_value.has_value());
+        }
+
+        SECTION("INT NOT NULL")
+        {
+            std::optional<int> value{123};
+            insert_statement << value;
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            auto result_value = result[0].to_optional<int>();
+            REQUIRE(*result_value == *value);
+        }
+
+        SECTION("std::string NULL")
+        {
+            std::optional<std::string> value;
+            insert_statement << value;
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            auto result_value = result[0].to_optional<int>();
+            REQUIRE_FALSE(result_value.has_value());
+        }
+
+        SECTION("std::string NOT NULL")
+        {
+            std::optional<std::string> value = "test";
+            insert_statement << value;
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            auto result_value = result[0].to_optional<std::string>();
+            REQUIRE(*result_value == *value);
+        }
+    }
 }
 
 TEST_CASE("Statement::operator[](const char*)")
@@ -671,6 +732,67 @@ TEST_CASE("Statement::operator[](const char*)")
                     REQUIRE(p[i] == 0);
                 }
             });
+        }
+    }
+
+    SECTION("std::optional")
+    {
+        auto insert_statement = conn.prepare("INSERT INTO item (name) VALUES (:name)");
+
+        SECTION("INT NULL")
+        {
+            std::optional<int> value;
+            insert_statement[":name"] = value;
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            auto result_value = result[0].to_optional<int>();
+            REQUIRE_FALSE(result_value.has_value());
+        }
+
+        SECTION("INT NOT NULL")
+        {
+            std::optional<int> value{123};
+            insert_statement[":name"] = value;
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            auto result_value = result[0].to_optional<int>();
+            REQUIRE(*result_value == *value);
+        }
+
+        SECTION("std::string NULL")
+        {
+            std::optional<std::string> value;
+            insert_statement[":name"] = value;
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            auto result_value = result[0].to_optional<int>();
+            REQUIRE_FALSE(result_value.has_value());
+        }
+
+        SECTION("std::string NOT NULL")
+        {
+            std::optional<std::string> value = "test";
+            insert_statement[":name"] = value;
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            auto result_value = result[0].to_optional<std::string>();
+            REQUIRE(*result_value == *value);
         }
     }
 }

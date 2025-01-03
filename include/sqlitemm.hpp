@@ -567,6 +567,26 @@ namespace sqlitemm
          * named parameter.
          */
         void operator=(const ZeroBlob& value);
+
+        /**
+         * Binds value to the named parameter. The content will be destroyed
+         * by the provided destructor.
+         *
+         * This allows for binding a value of type T that could potentially be
+         * NULL.
+         */
+        template<typename T>
+        void operator=(const std::optional<T>& value)
+        {
+            if (value.has_value())
+            {
+                *this = *value;
+            }
+            else
+            {
+                *this = nullptr;
+            }
+        }
     private:
         sqlite3_stmt* stmt; // prepared statement handle
         int index;          // index of the named parameter in the prepared statement
@@ -793,6 +813,28 @@ namespace sqlitemm
          * Returns a reference to this prepared statement object.
          */
         Statement& operator<<(const ZeroBlob& value);
+
+        /**
+         * Binds the value to the current parameter, then advances to the next
+         * parameter. The content will be destroyed by the provided destructor.
+         * Returns a reference to this prepared statement object.
+         *
+         * This allows for binding a value of type T that could potentially be
+         * NULL.
+         */
+        template<typename T>
+        Statement& operator<<(const std::optional<T>& value)
+        {
+            if (value.has_value())
+            {
+                *this << *value;
+            }
+            else
+            {
+                *this << nullptr;
+            }
+            return *this;
+        }
 
         /**
          * Allows for parameter binding by name as a null-terminated string.
