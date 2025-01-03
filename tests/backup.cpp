@@ -24,6 +24,7 @@ SCENARIO("a database can be backed up to another database")
         sqlitemm::Connection source(":memory:");
         REQUIRE_NOTHROW(source.execute("CREATE TABLE notes (id INTEGER PRIMARY KEY, content TEXT);"));
         {
+            auto transaction = source.begin_transaction();
             auto stmt = source.prepare("INSERT INTO notes (id, content) VALUES (:id, :content);");
             stmt[":content"] = "sample";
             for (int row_count = 0; row_count < num_rows; ++row_count)
@@ -32,6 +33,7 @@ SCENARIO("a database can be backed up to another database")
                 stmt.execute();
                 stmt.reset();
             }
+            transaction.commit();
         }
         sqlitemm::Connection destination(":memory:");
 
