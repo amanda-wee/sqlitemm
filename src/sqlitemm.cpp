@@ -1,7 +1,7 @@
 /************************************************************************************************************
  * SQLitemm source file
  *
- * Copyright 2020 Amanda Wee
+ * Copyright 2025 Amanda Wee
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
@@ -222,6 +222,16 @@ namespace sqlitemm
         return Transaction(db);
     }
 
+    Blob Connection::open_blob(
+        const std::string& database, const std::string& table, const std::string& column, size_t row, int flags
+    )
+    {
+        sqlite3_blob* blob = nullptr;
+        int result_code = sqlite3_blob_open(db, database.c_str(), table.c_str(), column.c_str(), row, flags, &blob);
+        check_result_ok(db, result_code);
+        return Blob(db, blob);
+    }
+
     void Connection::set_busy_timeout(int ms) noexcept
     {
         sqlite3_busy_timeout(db, ms);
@@ -231,6 +241,35 @@ namespace sqlitemm
     {
         stmt_ptrs.erase(std::remove_if(stmt_ptrs.begin(), stmt_ptrs.end(), [](auto&& p) { return p.expired(); }),
                         stmt_ptrs.end());
+    }
+
+    void Blob::close() noexcept
+    {
+        sqlite3_blob_close(blob);
+        blob = nullptr;
+    }
+
+    void Blob::read(void* buffer, size_t num_bytes, size_t blob_offset)
+    {
+        int result_code = sqlite3_blob_read(blob, buffer, num_bytes, blob_offset);
+        check_result_ok(db, result_code);
+    }
+
+    void Blob::write(const void* buffer, size_t num_bytes, size_t blob_offset)
+    {
+        int result_code = sqlite3_blob_write(blob, buffer, num_bytes, blob_offset);
+        check_result_ok(db, result_code);
+    }
+
+    size_t Blob::size() const
+    {
+        return sqlite3_blob_bytes(blob);
+    }
+
+    void Blob::reopen(size_t row)
+    {
+        int result_code = sqlite3_blob_reopen(blob, row);
+        check_result_ok(db, result_code);
     }
 
     namespace

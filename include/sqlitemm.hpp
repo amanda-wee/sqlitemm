@@ -4,7 +4,7 @@
 /************************************************************************************************************
  * SQLitemm header file
  *
- * Copyright 2020 Amanda Wee
+ * Copyright 2025 Amanda Wee
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
@@ -33,6 +33,7 @@
 namespace sqlitemm
 {
     class Statement;
+    class Blob;
     class Parameter;
     class Result;
     class ResultField;
@@ -162,6 +163,13 @@ namespace sqlitemm
         Transaction begin_transaction();
 
         /**
+         * Opens a blob for incremental I/O and returns the blob object.
+         */
+        Blob open_blob(
+            const std::string& database, const std::string& table, const std::string& column, size_t row, int flags
+        );
+
+        /**
          * Sets a busy handler that sleeps multiple times until at least ms
          * milliseconds of sleeping have accumulated when a table is locked.
          * If the table remains locked after sleeping, BusyError will be thrown
@@ -231,6 +239,87 @@ namespace sqlitemm
 
         /// Number of bytes of the zero blob.
         size_t num_bytes;
+    };
+
+    /**
+     * Models a blob for incremental I/O.
+     */
+    class Blob
+    {
+    public:
+        /// Flag to open the blob for reading only.
+        static constexpr int READ_ONLY = 0;
+        /// Flag to open the blob for both reading and writing.
+        static constexpr int READ_WRITE = 1;
+
+        Blob() = delete;
+        Blob(const Blob& other) = delete;
+        void operator=(const Blob& other) = delete;
+
+        /**
+         * Move constructs the blob object.
+         */
+        Blob(Blob&& other) noexcept : db(other.db), blob(other.blob)
+        {
+            other.db = nullptr;
+            other.blob = nullptr;
+        }
+
+        /**
+         * Move assigns the blob object.
+         */
+        Blob& operator=(Blob&& other) noexcept
+        {
+            using std::swap;
+            swap(db, other.db);
+            swap(blob, other.blob);
+            return *this;
+        }
+
+        /**
+         * Destroys the blob object by closing the blob handle.
+         */
+        ~Blob()
+        {
+            close();
+        }
+
+        /**
+         * Closes the blob handle if it is open.
+         */
+        void close() noexcept;
+
+        /**
+         * Reads num_bytes bytes from the blob into buffer starting at
+         * blob_offset.
+         */
+        void read(void* buffer, size_t num_bytes, size_t blob_offset);
+
+        /**
+         * Writes num_bytes bytes from the buffer into the blob starting at
+         * blob_offset.
+        */
+        void write(const void* buffer, size_t num_bytes, size_t blob_offset);
+
+        /**
+         * Returns the size of the blob in bytes.
+         */
+        size_t size() const;
+
+        /**
+         * Reopens the blob to the specified row in the original table and
+         * column.
+         */
+        void reopen(size_t row);
+    private:
+        sqlite3* db = nullptr; // database connection handle for error reporting
+        sqlite3_blob* blob = nullptr; // blob handle
+
+        explicit Blob(sqlite3* db, sqlite3_blob* blob) : db(db), blob(blob) {}
+
+        friend Blob Connection::open_blob(
+            const std::string& database, const std::string& table, const std::string& column, size_t row, int flags
+        );
     };
 
     /**
