@@ -25,10 +25,10 @@ SCENARIO("a database can be backed up to another database")
         REQUIRE_NOTHROW(source.execute("CREATE TABLE notes (id INTEGER PRIMARY KEY, content TEXT);"));
         {
             auto stmt = source.prepare("INSERT INTO notes (id, content) VALUES (:id, :content);");
+            stmt[":content"] = "sample";
             for (int row_count = 0; row_count < num_rows; ++row_count)
             {
                 stmt[":id"] = row_count + 1;
-                stmt[":content"] = "sample";
                 stmt.execute();
                 stmt.reset();
             }

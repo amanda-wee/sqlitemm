@@ -199,6 +199,9 @@ namespace sqlitemm
      */
     void detach(Connection& connection, const std::string& schema_name);
 
+    /**
+     * Models an online database backup.
+     */
     class Backup
     {
     public:
@@ -248,14 +251,24 @@ namespace sqlitemm
         }
 
         /**
-         * Copies up to num_pages pages between the source and destination databases.
+         * Copies up to num_pages pages between the source and destination
+         * databases.
          *
-         * Returns true if copying is successful and there are more pages to be copied.
+         * Returns true if copying is successful and there are more pages to
+         * be copied.
          */
         bool step(int num_pages);
 
+        /**
+         * Returns the number of pages remaining after the most recent call to
+         * step().
+         */
         int pages_remaining();
 
+        /**
+         * Returns the total number of pages after the most recent call to
+         * step().
+         */
         int page_count();
 
         /**
