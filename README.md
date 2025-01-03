@@ -17,7 +17,7 @@ SQLitemm is a C++ wrapper interface for SQLite's C API. It is a non-compatible r
 * `ResultIterator`: an input iterator that allows for iterating over result rows into objects of arbitrary type as long as the type provides a constructor that processes a `Result` as a row
 * `statement << paramA << paramB;`: "stream" parameter values in sequence to bind them
 * `statement[":paramA"] = paramA;`: bind parameters by name
-* Support for binding `NULL` (as `nullptr`), `const char*`, `std::string`, and `std::u16string` parameters
+* Support for binding `NULL` (as `nullptr`), `const char*`, `std::string`, `std::u16string`, and zero-filled blob parameters
 * Support for binding arbitrary text and BLOB parameters through `TextValue` and `BlobValue` respectively
 * `result >> valueA >> valueB;`: "stream" the fields of a result row in sequence to their destination values, implicitly performing type conversion
 * `valueA = result[0];`: implicitly convert the fields of a result row by index to the desired type

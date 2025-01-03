@@ -371,6 +371,13 @@ namespace sqlitemm
             int result_code = sqlite3_bind_blob64(stmt, index, value.content, num_bytes, value.destructor);
             check_result_ok(stmt, result_code);
         }
+
+        void bind_parameter(sqlite3_stmt* stmt, int index, const ZeroBlob& value)
+        {
+            auto num_bytes = static_cast<sqlite3_uint64>(value.num_bytes);
+            int result_code = sqlite3_bind_zeroblob64(stmt, index, num_bytes);
+            check_result_ok(stmt, result_code);
+        }
     }
 
     Parameter::Parameter(sqlite3_stmt* stmt, const char* name) : stmt(stmt)
@@ -493,6 +500,11 @@ namespace sqlitemm
     }
 
     void Parameter::operator=(const TextValue& value)
+    {
+        bind_parameter(stmt, index, value);
+    }
+
+    void Parameter::operator=(const ZeroBlob& value)
     {
         bind_parameter(stmt, index, value);
     }
@@ -653,6 +665,13 @@ namespace sqlitemm
     }
 
     Statement& Statement::operator<<(const TextValue& value)
+    {
+        bind_parameter(*stmt_ptr, parameter_index, value);
+        ++parameter_index;
+        return *this;
+    }
+
+    Statement& Statement::operator<<(const ZeroBlob& value)
     {
         bind_parameter(*stmt_ptr, parameter_index, value);
         ++parameter_index;

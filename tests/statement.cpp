@@ -434,19 +434,40 @@ TEST_CASE("Statement::operator<<")
 
         SECTION("BlobValue")
         {
-            std::array<int, 4> value{0, 1, 2, 3};
-            insert_statement << sqlitemm::BlobValue(&value, sizeof(value), SQLITE_STATIC);
+            std::array<int, 4> expected_value{0, 1, 2, 3};
+            insert_statement << sqlitemm::BlobValue(&expected_value, sizeof(expected_value), SQLITE_STATIC);
             insert_statement.execute();
             insert_statement.finalize();
 
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            decltype(value) field_result;
-            result.as_text([&field_result](auto value, int num_bytes) {
+            decltype(expected_value) field_result;
+            result.as_blob([&field_result](auto value, int num_bytes) {
                 REQUIRE(num_bytes == sizeof(field_result));
-                auto p = reinterpret_cast<const char*>(value);
-                std::copy(p, p + num_bytes, reinterpret_cast<char*>(&field_result));
+                auto p = reinterpret_cast<const int*>(value);
+                std::copy(p, p + field_result.size(), field_result.begin());
+            });
+            REQUIRE(field_result == expected_value);
+        }
+
+        SECTION("ZeroBlob")
+        {
+            const size_t expected_num_bytes = 16;
+            insert_statement << sqlitemm::ZeroBlob(expected_num_bytes);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            result.as_blob([expected_num_bytes](auto value, int num_bytes) {
+                REQUIRE(num_bytes == expected_num_bytes);
+                auto p = reinterpret_cast<const unsigned char*>(value);
+                for (decltype(num_bytes) i = 0; i < num_bytes; ++i)
+                {
+                    REQUIRE(p[i] == 0);
+                }
             });
         }
     }
@@ -615,19 +636,40 @@ TEST_CASE("Statement::operator[](const char*)")
 
         SECTION("BlobValue")
         {
-            std::array<int, 4> value{0, 1, 2, 3};
-            insert_statement[":name"] = sqlitemm::BlobValue(&value, sizeof(value), SQLITE_STATIC);
+            std::array<int, 4> expected_value{0, 1, 2, 3};
+            insert_statement[":name"] = sqlitemm::BlobValue(&expected_value, sizeof(expected_value), SQLITE_STATIC);
             insert_statement.execute();
             insert_statement.finalize();
 
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            decltype(value) field_result;
-            result.as_text([&field_result](auto value, int num_bytes) {
+            decltype(expected_value) field_result;
+            result.as_blob([&field_result](auto value, int num_bytes) {
                 REQUIRE(num_bytes == sizeof(field_result));
-                auto p = reinterpret_cast<const char*>(value);
-                std::copy(p, p + num_bytes, reinterpret_cast<char*>(&field_result));
+                auto p = reinterpret_cast<const int*>(value);
+                std::copy(p, p + field_result.size(), field_result.begin());
+            });
+            REQUIRE(field_result == expected_value);
+        }
+
+        SECTION("ZeroBlob")
+        {
+            const size_t expected_num_bytes = 16;
+            insert_statement[":name"] = sqlitemm::ZeroBlob(expected_num_bytes);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            result.as_blob([expected_num_bytes](auto value, int num_bytes) {
+                REQUIRE(num_bytes == expected_num_bytes);
+                auto p = reinterpret_cast<const unsigned char*>(value);
+                for (decltype(num_bytes) i = 0; i < num_bytes; ++i)
+                {
+                    REQUIRE(p[i] == 0);
+                }
             });
         }
     }
@@ -798,19 +840,40 @@ TEST_CASE("Statement::operator[](const std::string&)")
 
         SECTION("BlobValue")
         {
-            std::array<int, 4> value{0, 1, 2, 3};
-            insert_statement[parameter] = sqlitemm::BlobValue(&value, sizeof(value), SQLITE_STATIC);
+            std::array<int, 4> expected_value{0, 1, 2, 3};
+            insert_statement[parameter] = sqlitemm::BlobValue(&expected_value, sizeof(expected_value), SQLITE_STATIC);
             insert_statement.execute();
             insert_statement.finalize();
 
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            decltype(value) field_result;
-            result.as_text([&field_result](auto value, int num_bytes) {
+            decltype(expected_value) field_result;
+            result.as_blob([&field_result](auto value, int num_bytes) {
                 REQUIRE(num_bytes == sizeof(field_result));
-                auto p = reinterpret_cast<const char*>(value);
-                std::copy(p, p + num_bytes, reinterpret_cast<char*>(&field_result));
+                auto p = reinterpret_cast<const int*>(value);
+                std::copy(p, p + field_result.size(), field_result.begin());
+            });
+            REQUIRE(field_result == expected_value);
+        }
+
+        SECTION("ZeroBlob")
+        {
+            const size_t expected_num_bytes = 16;
+            insert_statement[parameter] = sqlitemm::ZeroBlob(expected_num_bytes);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT name FROM item");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            result.as_blob([expected_num_bytes](auto value, int num_bytes) {
+                REQUIRE(num_bytes == expected_num_bytes);
+                auto p = reinterpret_cast<const unsigned char*>(value);
+                for (decltype(num_bytes) i = 0; i < num_bytes; ++i)
+                {
+                    REQUIRE(p[i] == 0);
+                }
             });
         }
     }

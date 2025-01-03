@@ -219,6 +219,21 @@ namespace sqlitemm
     };
 
     /**
+     * Models a zero blob placeholder for parameter binding that allows for
+     * binding a blob of num_bytes length that is filled with zeroes.
+     */
+    struct ZeroBlob
+    {
+        /**
+         * Initialises the zero blob placeholder.
+         */
+        explicit ZeroBlob(size_t num_bytes) : num_bytes(num_bytes) {}
+
+        /// Number of bytes of the zero blob.
+        size_t num_bytes;
+    };
+
+    /**
      * Models a named parameter in a prepared statement.
      */
     class Parameter
@@ -360,6 +375,12 @@ namespace sqlitemm
          * by the provided destructor.
          */
         void operator=(const TextValue& value);
+
+        /**
+         * Binds a zero-filled blob of the length of value.num_bytes to the
+         * named parameter.
+         */
+        void operator=(const ZeroBlob& value);
     private:
         sqlite3_stmt* stmt; // prepared statement handle
         int index;          // index of the named parameter in the prepared statement
@@ -579,6 +600,13 @@ namespace sqlitemm
          * Returns a reference to this prepared statement object.
          */
         Statement& operator<<(const TextValue& value);
+
+        /**
+         * Binds the value to the current parameter, then advances to the next
+         * parameter. The content will be destroyed by the provided destructor.
+         * Returns a reference to this prepared statement object.
+         */
+        Statement& operator<<(const ZeroBlob& value);
 
         /**
          * Allows for parameter binding by name as a null-terminated string.
