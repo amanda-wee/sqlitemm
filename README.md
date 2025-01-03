@@ -38,7 +38,7 @@ Installation
 ------------
 The `sqlitemm.hpp` header file can be included in your project much like the `sqlite3.h` header file. Analogous to the SQLite amalgamation for C projects, the `sqlitemm.cpp` source file can be compiled along with the C++ source files of your project.
 
-`sqlite3.h` and `sqlite3.c` (SQLite version 3.32.1) are provided along with this project for ease of automated testing, but you are free to use your own copy of the SQLite header and source with other versions of SQLite.
+`sqlite3.h` and `sqlite3.c` (SQLite version 3.47.2, originally tested against version 3.32.1) are provided along with this project for ease of automated testing, but you are free to use your own copy of the SQLite header and source with other versions of SQLite.
 
 ### C++ Version
 Due to the use of `std::optional` to handle retrieving fields that might contain `NULL`, SQLitemm must be compiled with respect to C++17 or later.
