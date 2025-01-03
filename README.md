@@ -25,12 +25,12 @@ SQLitemm is a C++ wrapper interface for SQLite's C API. It is a non-compatible r
 * `auto valueA = result[0].to_optional<int>();`: convert the fields of a result row to `std::optional`, hence allowing for fields that might contain `NULL` (also available for "streaming" the fields of a result row)
 * Support for retrieving arbitrary UTF-8 text, UTF-16 text, and BLOB values by providing function objects to perform the retrieval
 * Optional "strict typing" on a per-query basis, allowing for the prevention of SQLite automatic type conversions across the SQLite fundamental types when retrieving values
+* Support for online database backups
 * Convenience functions for attaching and detaching databases
 
 ### Future work:
 * Support for creating SQL functions
 * `Savepoint` class along the same lines as the `Transaction` class
-* Support for online database backups
 * Adding other functionality associated with `sqlite3` to `Connection`
 * Adding miscellaneous functionality to the `sqlitemm` namespace
 * Only forward declare the parts of the `sqlite3.h` header that are needed in `sqlitemm.h` rather than including the entire header

@@ -261,6 +261,48 @@ namespace sqlitemm
         connection.execute(sql.str());
     }
 
+    Backup::Backup(Connection& source, const std::string& source_database,
+                   Connection& destination, const std::string& destination_database)
+    {
+        backup = sqlite3_backup_init(
+            destination.db, destination_database.c_str(), source.db, source_database.c_str()
+        );
+    }
+
+    bool Backup::step(int num_pages)
+    {
+        int result_code = sqlite3_backup_step(backup, num_pages);
+        switch (result_code)
+        {
+        case SQLITE_OK:
+            return true;
+        case SQLITE_DONE:
+            return false;
+        default:
+            throw_error("SQLite database backup error", result_code);
+            return false;
+        }
+    }
+
+    int Backup::pages_remaining()
+    {
+        return sqlite3_backup_remaining(backup);
+    }
+
+    int Backup::page_count()
+    {
+        return sqlite3_backup_pagecount(backup);
+    }
+
+    void Backup::close() noexcept
+    {
+        if (backup)
+        {
+            sqlite3_backup_finish(backup);
+            backup = nullptr;
+        }
+    }
+
     void Blob::close() noexcept
     {
         sqlite3_blob_close(blob);

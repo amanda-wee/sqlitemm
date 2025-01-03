@@ -32,13 +32,15 @@
  */
 namespace sqlitemm
 {
-    class Statement;
+    class Backup;
     class Blob;
+    class Connection;
     class Parameter;
     class Result;
     class ResultField;
     template<typename T>
     class ResultIterator;
+    class Statement;
     class Transaction;
 
     /**
@@ -182,6 +184,7 @@ namespace sqlitemm
         std::vector<std::weak_ptr<sqlite3_stmt*>> stmt_ptrs;
 
         void clean_stmt_ptrs();
+        friend class Backup;
     };
 
     /**
@@ -191,9 +194,79 @@ namespace sqlitemm
     void attach(Connection& connection, const std::string& filename, const std::string& schema_name);
 
     /**
-     * Detach the database identified with the schema name from the database connection.
+     * Detach the database identified with the schema name from the database
+     * connection.
      */
     void detach(Connection& connection, const std::string& schema_name);
+
+    class Backup
+    {
+    public:
+        Backup() = delete;
+        Backup(const Backup& other) = delete;
+        void operator=(const Backup& other) = delete;
+
+        /**
+         * Create backup to backup from the source database using the source
+         * database connection and database name to the destination database
+         * using the destination database connection and database name.
+         *
+         * As per SQLite documentation: The database name is "main" for the
+         * main database, "temp" for the temporary database, or the name
+         * specified after the AS keyword in an ATTACH statement for an
+         * attached database.
+         */
+        Backup(Connection& source, const std::string& source_database,
+               Connection& destination, const std::string& destination_database);
+
+        /**
+         * Move constructs the backup object.
+         */
+        Backup(Backup&& other) noexcept : db(other.db), backup(other.backup)
+        {
+            other.db = nullptr;
+            other.backup = nullptr;
+        }
+
+        /**
+         * Move assigns the backup object.
+         */
+        Backup& operator=(Backup&& other) noexcept
+        {
+            using std::swap;
+            swap(db, other.db);
+            swap(backup, other.backup);
+            return *this;
+        }
+
+        /**
+         * Destroys the backup object by closing the backup handle.
+         */
+        ~Backup()
+        {
+            close();
+        }
+
+        /**
+         * Copies up to num_pages pages between the source and destination databases.
+         *
+         * Returns true if copying is successful and there are more pages to be copied.
+         */
+        bool step(int num_pages);
+
+        int pages_remaining();
+
+        int page_count();
+
+        /**
+         * Closes the backup handle and releases all resources associated with
+         * the backup operation.
+         */
+        void close() noexcept;
+    private:
+        sqlite3* db = nullptr; // database connection handle for error reporting
+        sqlite3_backup* backup = nullptr; // backup handle
+    };
 
     /**
      * Models a BLOB value for parameter binding that handles its own
