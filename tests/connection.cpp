@@ -47,7 +47,7 @@ SCENARIO("extended result codes are enabled")
     GIVEN("a table with a unique row")
     {
         REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT UNIQUE);"
-                                    "INSERT INTO person (name) VALUES ('Alice');"));
+                                     "INSERT INTO person (name) VALUES ('Alice');"));
 
         WHEN("a duplicate row is inserted")
         {
@@ -154,6 +154,41 @@ SCENARIO("last_insert_rowid member function is called")
             THEN("thr last insert rowid is reported to be 1")
             {
                 REQUIRE(conn.last_insert_rowid() == 1);
+            }
+        }
+    }
+}
+
+SCENARIO("attach and detach non-member functions are called")
+{
+    sqlitemm::Connection conn(":memory:");
+
+    GIVEN("a table with one row")
+    {
+        REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT UNIQUE);"
+                                     "INSERT INTO person (name) VALUES ('Alice');"));
+
+        WHEN("attach is called")
+        {
+            attach(conn, ":memory:", "auxiliary");
+
+            THEN("SQL statements can be run with both databases")
+            {
+                conn.execute("CREATE TABLE auxiliary.person (id INTEGER PRIMARY KEY, name TEXT UNIQUE);"
+                             "INSERT INTO auxiliary.person (id, name) SELECT id, name FROM main.person;");
+            }
+
+            WHEN("detach is called")
+            {
+                detach(conn, "auxiliary");
+
+                THEN("SQL statements cannot be run with the previously attached database")
+                {
+                    REQUIRE_THROWS_AS(
+                        conn.execute("CREATE TABLE auxiliary.person (id INTEGER PRIMARY KEY, name TEXT UNIQUE);"),
+                        sqlitemm::Error
+                    );
+                }
             }
         }
     }

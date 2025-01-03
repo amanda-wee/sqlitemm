@@ -245,6 +245,22 @@ namespace sqlitemm
                         stmt_ptrs.end());
     }
 
+    void attach(Connection& connection, const std::string& filename, const std::string& schema_name)
+    {
+        std::ostringstream sql;
+        sql << "ATTACH DATABASE :filename AS \"" << schema_name << "\";";
+        auto stmt = connection.prepare(sql.str());
+        stmt[":filename"] = filename;
+        stmt.execute();
+    }
+
+    void detach(Connection& connection, const std::string& schema_name)
+    {
+        std::ostringstream sql;
+        sql << "DETACH DATABASE \"" << schema_name << "\";";
+        connection.execute(sql.str());
+    }
+
     void Blob::close() noexcept
     {
         sqlite3_blob_close(blob);

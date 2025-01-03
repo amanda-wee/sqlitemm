@@ -185,6 +185,17 @@ namespace sqlitemm
     };
 
     /**
+     * Attach another database to the database connection, identifying the
+     * objects from the other database using a separate schema name.
+     */
+    void attach(Connection& connection, const std::string& filename, const std::string& schema_name);
+
+    /**
+     * Detach the database identified with the schema name from the database connection.
+     */
+    void detach(Connection& connection, const std::string& schema_name);
+
+    /**
      * Models a BLOB value for parameter binding that handles its own
      * memory allocation, providing a destructor for SQLite to deallocate
      * the memory accordingly.
