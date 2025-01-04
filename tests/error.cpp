@@ -1,7 +1,7 @@
 /************************************************************************************************************
  * SQLitemm tests source file primarily for testing sqlitemm::Error and its derived classes
  *
- * Copyright 2020 Amanda Wee
+ * Copyright 2025 Amanda Wee
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
@@ -15,6 +15,20 @@
 
 #include "sqlitemm.hpp"
 #include "catch.hpp"
+
+TEST_CASE("BusyOrLockedError")
+{
+    // These are difficult to simulate, so we shall just check for
+    // inheritance and constructors:
+    REQUIRE_THROWS_AS(
+        throw sqlitemm::BusyError("test busy error", SQLITE_BUSY_TIMEOUT),
+        sqlitemm::BusyOrLockedError
+    );
+    REQUIRE_THROWS_AS(
+        throw sqlitemm::LockedError("test locked error", SQLITE_LOCKED_SHAREDCACHE),
+        sqlitemm::BusyOrLockedError
+    );
+}
 
 TEST_CASE("ConstraintError")
 {

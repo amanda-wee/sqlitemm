@@ -1587,12 +1587,22 @@ namespace sqlitemm
     };
 
     /**
-     * SQLite busy errors.
+     * Intermediate base class for SQLite busy and locked errors so that they
+     * can be easily handled in the same handler.
      */
-    class BusyError : public Error
+    class BusyOrLockedError : public Error
     {
     public:
         using Error::Error;
+    };
+
+    /**
+     * SQLite busy errors.
+     */
+    class BusyError : public BusyOrLockedError
+    {
+    public:
+        using BusyOrLockedError::BusyOrLockedError;
     };
 
     /**
@@ -1602,6 +1612,15 @@ namespace sqlitemm
     {
     public:
         using Error::Error;
+    };
+
+    /**
+     * SQLite locked errors.
+     */
+    class LockedError : public BusyOrLockedError
+    {
+    public:
+        using BusyOrLockedError::BusyOrLockedError;
     };
 
     /**

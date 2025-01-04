@@ -44,6 +44,8 @@ namespace sqlitemm
                 throw BusyError(what_arg, result_code);
             case SQLITE_CONSTRAINT:
                 throw ConstraintError(what_arg, result_code);
+            case SQLITE_LOCKED:
+                throw LockedError(what_arg, result_code);
             default:
                 throw Error(what_arg, result_code);
             }
