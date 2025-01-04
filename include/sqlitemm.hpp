@@ -569,11 +569,8 @@ namespace sqlitemm
         void operator=(const ZeroBlob& value);
 
         /**
-         * Binds value to the named parameter. The content will be destroyed
-         * by the provided destructor.
-         *
-         * This allows for binding a value of type T that could potentially be
-         * NULL.
+         * Binds the value of value to the named parameter if it has a value,
+         * otherwise binds NULL to the named parameter.
          */
         template<typename T>
         void operator=(const std::optional<T>& value)
@@ -581,6 +578,23 @@ namespace sqlitemm
             if (value.has_value())
             {
                 *this = *value;
+            }
+            else
+            {
+                *this = nullptr;
+            }
+        }
+
+        /**
+         * Binds the value of value to the named parameter if it has a value,
+         * otherwise binds NULL to the named parameter.
+         */
+        template<typename T>
+        void operator=(std::optional<T>&& value)
+        {
+            if (value.has_value())
+            {
+                *this = std::move(*value);
             }
             else
             {
@@ -608,7 +622,8 @@ namespace sqlitemm
         /**
          * Move constructs the prepared statement.
          */
-        Statement(Statement&& other) noexcept : stmt_ptr(std::move(other.stmt_ptr)), parameter_index(other.parameter_index) {}
+        Statement(Statement&& other) noexcept :
+            stmt_ptr(std::move(other.stmt_ptr)), parameter_index(other.parameter_index) {}
 
         /**
          * Move assigns the prepared statement.
@@ -815,12 +830,10 @@ namespace sqlitemm
         Statement& operator<<(const ZeroBlob& value);
 
         /**
-         * Binds the value to the current parameter, then advances to the next
-         * parameter. The content will be destroyed by the provided destructor.
-         * Returns a reference to this prepared statement object.
-         *
-         * This allows for binding a value of type T that could potentially be
-         * NULL.
+         * Binds the value to the current parameter if it has a value,
+         * otherwise binds NULL to the current parameter, then advances to the
+         * next parameter. Returns a reference to this prepared statement
+         * object.
          */
         template<typename T>
         Statement& operator<<(const std::optional<T>& value)
@@ -828,6 +841,26 @@ namespace sqlitemm
             if (value.has_value())
             {
                 *this << *value;
+            }
+            else
+            {
+                *this << nullptr;
+            }
+            return *this;
+        }
+
+        /**
+         * Binds the value to the current parameter if it has a value,
+         * otherwise binds NULL to the current parameter, then advances to the
+         * next parameter. Returns a reference to this prepared statement
+         * object.
+         */
+        template<typename T>
+        Statement& operator<<(std::optional<T>&& value)
+        {
+            if (value.has_value())
+            {
+                *this << std::move(*value);
             }
             else
             {
