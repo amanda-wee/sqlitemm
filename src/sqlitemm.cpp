@@ -345,6 +345,7 @@ namespace sqlitemm
 
     bool Backup::step(int num_pages)
     {
+        assert(backup);
         int result_code = sqlite3_backup_step(backup, num_pages);
         switch (result_code)
         {
@@ -360,11 +361,13 @@ namespace sqlitemm
 
     int Backup::pages_remaining()
     {
+        assert(backup);
         return sqlite3_backup_remaining(backup);
     }
 
     int Backup::page_count()
     {
+        assert(backup);
         return sqlite3_backup_pagecount(backup);
     }
 
@@ -385,23 +388,27 @@ namespace sqlitemm
 
     void Blob::read(void* buffer, size_t num_bytes, size_t blob_offset)
     {
+        assert(blob);
         int result_code = sqlite3_blob_read(blob, buffer, num_bytes, blob_offset);
         check_result_ok(db, result_code);
     }
 
     void Blob::write(const void* buffer, size_t num_bytes, size_t blob_offset)
     {
+        assert(blob);
         int result_code = sqlite3_blob_write(blob, buffer, num_bytes, blob_offset);
         check_result_ok(db, result_code);
     }
 
     size_t Blob::size() const
     {
+        assert(blob);
         return sqlite3_blob_bytes(blob);
     }
 
     void Blob::reopen(size_t row)
     {
+        assert(blob);
         int result_code = sqlite3_blob_reopen(blob, row);
         check_result_ok(db, result_code);
     }
