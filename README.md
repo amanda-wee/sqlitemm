@@ -51,7 +51,7 @@ If Doxygen is available, it can be used to generate documentation by running `ma
 Example Usage
 -------------
 If we imagine a one-off retrieval of some unspecified game results consisting of names and corresponding scores from a table where scores are greater than some threshold parameter:
-```C
+```cpp
 std::vector<GameResult> retrieve_results(double threshold)
 {
     auto connection = sqlitemm::Connection(DATABASE_FILENAME);

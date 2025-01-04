@@ -1,7 +1,7 @@
 Usage Examples
 --------------
 Building on the game results example in the main README, here is an example of saving a container of game results using a transaction:
-```C
+```cpp
 void save_results(const std::vector<GameResult>& game_results)
 {
     auto connection = sqlitemm::Connection(DATABASE_FILENAME);
@@ -20,7 +20,7 @@ void save_results(const std::vector<GameResult>& game_results)
 If there is an exception before the commit, or if the commit is omitted entirely, then the insertions will be rolled back.
 
 Suppose instead that some scores have not been recorded, and so you want them to be set to NULL in the `score` database column until they can be updated for the given player:
-```C
+```cpp
 void save_results(const std::vector<GameResult>& game_results)
 {
     auto connection = sqlitemm::Connection(DATABASE_FILENAME);
