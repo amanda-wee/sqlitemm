@@ -823,8 +823,8 @@ namespace sqlitemm
         Statement& operator<<(const TextValue& value);
 
         /**
-         * Binds the value to the current parameter, then advances to the next
-         * parameter. The content will be destroyed by the provided destructor.
+         * Binds a zero-filled blob of the length of value.num_bytes to the
+         * current parameter, then advances to the next parameter.
          * Returns a reference to this prepared statement object.
          */
         Statement& operator<<(const ZeroBlob& value);
@@ -1333,9 +1333,11 @@ namespace sqlitemm
     /**
      * Input iterator to the rows of a result set.
      *
-     * To use a result iterator for some type T, define a constructor for T
-     * that takes a reference to Result, with which it reads the row from
-     * result set that the iterator points to.
+     * To use a result iterator for some type T, either define a constructor
+     * for T that takes a reference to Result, with which it reads the row
+     * from result set that the iterator points to, or provide the iterator
+     * with a result row retrieval callback function that takes a reference to
+     * Result and returns an object of type T.
      */
     template<typename T>
     class ResultIterator
