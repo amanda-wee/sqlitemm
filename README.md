@@ -2,39 +2,39 @@ SQLitemm
 ========
 ![C/C++ CI](https://github.com/amanda-wee/sqlitemm/workflows/C/C++%20CI/badge.svg)
 
-SQLitemm is a C++ wrapper interface for SQLite's C API. It provides a library of database resource objects and associated functionality to make it easy to write C++17 (and later) programs that rely on SQLite databases.
+SQLitemm is a C++ wrapper interface for [SQLite](https://www.sqlite.org/)'s C API. It provides a library of database resource objects and associated functionality to make it easy to write C++17 (and later) programs that rely on SQLite databases.
 
-### Classes to wrap SQLite resource objects:
+Features
+--------
+### Classes to wrap SQLite resource objects
 * `Connection`: a database connection (wraps `sqlite3`)
 * `Statement`: a prepared statement (wraps `sqlite3_stmt`)
 * `Blob`: a blob object that enables incremental I/O with BLOBs (wraps `sqlite3_blob`)
 * `Backup`: a backup object that enables support for online database backups (wraps `sqlite3_backup`)
 
-### Classes to wrap SQLite concepts:
+### Classes to wrap SQLite concepts
 * `Result`: a result object that abstracts out the result retrieval aspects of `sqlite3_stmt`
 * `Transaction`: a transaction object to automatically rollback when a C++ exception is thrown or propagated should the transaction be not yet committed or already rolled back
 * `Error`: an exception base class for SQLite error codes; derived classes are provided where they are likely to be useful to be handled separately
 
-### Notable features:
-* `ResultIterator`: an input iterator that allows for iterating over result rows into objects of arbitrary type as long as the type provides a constructor that processes a `Result` as a row, or the iterator is provided a callback function that converts a `Result` as a row into an object of the given type
+### Prepared statement parameter binding
 * `statement << paramA << paramB;`: "stream" parameter values in sequence to bind them
 * `statement[":paramA"] = paramA;`: bind parameters by name
 * Support for binding `NULL` (as `nullptr`), `const char*`, `std::string`, `std::u16string`, and zero-filled blob parameters
 * Support for binding arbitrary text and BLOB parameters through `TextValue` and `BlobValue` respectively
 * Support for binding values of type `T` that may or may not be `NULL` through binding `std::optional<T>`
-* `result >> valueA >> valueB;`: "stream" the fields of a result row in sequence to their destination values, implicitly performing type conversion, including conversion to `std::optional` for fields that might contain `NULL`
-* `valueA = result[0];`: implicitly convert the fields of a result row by index to the desired type
-* `valueA = result[0].to_optional<int>();`: convert the fields of a result row to `std::optional`, hence allowing for fields that might contain `NULL`
+
+### Query result retrieval
+* `ResultIterator`: an input iterator that allows for iterating over result rows into objects of arbitrary type as long as the type provides a constructor that processes a `Result` as a row, or the iterator is provided a callback function that converts a `Result` as a row into an object of the given type
+* `result >> valueA >> valueB;`: "stream" the fields of a result row in sequence to their destination variables, implicitly performing type conversion, including conversion to `std::optional` for fields that might contain `NULL`
+* `valueA = result[0];`: retrieve the fields of a result row by index, implicitly performing type conversion
+* `valueA = result[0].to_optional<int>();`: convert the fields of a result row retrieved by index to `std::optional`, hence allowing for fields that might contain `NULL`
 * Support for retrieving arbitrary UTF-8 text, UTF-16 text, and BLOB values by providing callback functions to perform the retrieval
-* Support for creating SQL functions
+
+### Other SQLite features
+* Support for creating SQL functions (scalar, aggregate, and window)
 * Optional "strict typing" on a per-query basis, allowing for the prevention of SQLite automatic type conversions across the SQLite fundamental types when retrieving values
 * Convenience functions for attaching and detaching databases
-
-### Future work:
-* `Savepoint` class along the same lines as the `Transaction` class
-* Adding other functionality associated with `sqlite3` to `Connection`
-* Adding miscellaneous functionality to the `sqlitemm` namespace
-* Only forward declare the parts of the `sqlite3.h` header that are needed in `sqlitemm.h` rather than including the entire header
 
 Installation
 ------------
@@ -46,7 +46,7 @@ The `sqlitemm.hpp` header file can be included in your project much like the `sq
 Due to the use of `std::optional` to handle binding parameters and retrieving fields that might contain `NULL`, SQLitemm must be compiled with respect to C++17 or later.
 
 ### Doxygen
-If Doxygen is available, it can be used to generate documentation by running `make docs`.
+If [Doxygen](https://www.doxygen.nl/) is available, it can be used to generate documentation by running `make docs`.
 
 Example Usage
 -------------
@@ -70,9 +70,15 @@ If there is a database-related error, an exception of type `sqlitemm::Error` wil
 
 Additional usage examples can be found in the examples folder.
 
-History
--------
-The Sqlitemm of 2020 and later is a non-compatible rewrite of the 2005 SQLitemm project that aimed to provide "resource encapsulation and management while attempting to maintain minimal deviation from the original C interface". This rewrite has less concern about deviating from the original C interface, and makes extensive use of post-C++11 features such as the use of `std::optional` to model values that could contain `NULL`.
+Background
+----------
+The SQLitemm of 2020 and later is a non-compatible rewrite of the 2005 SQLitemm project that aimed to provide "resource encapsulation and management while attempting to maintain minimal deviation from the original C interface". This rewrite has less concern about deviating from the original C interface, and makes extensive use of post-C++11 features such as the use of `std::optional` to model values that could contain `NULL`.
+
+### Future work
+* Augmenting `Transaction` to support SQLite savepoints
+* Adding other functionality associated with `sqlite3` to `Connection`
+* Adding miscellaneous functionality to the `sqlitemm` namespace
+* Only forward declare the parts of the `sqlite3.h` header that are needed in `sqlitemm.h` rather than including the entire header
 
 Legal
 -----
