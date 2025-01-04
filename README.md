@@ -2,12 +2,13 @@ SQLitemm
 ========
 ![C/C++ CI](https://github.com/amanda-wee/sqlitemm/workflows/C/C++%20CI/badge.svg)
 
-SQLitemm is a C++ wrapper interface for SQLite's C API. It is a non-compatible rewrite of the 2005 SQLitemm project that aimed to provide "resource encapsulation and management while attempting to maintain minimal deviation from the original C interface", except that the latter goal has less emphasis, with support for newer SQLite3 features in a post-C++11 world being the new additional goals.
+SQLitemm is a C++ wrapper interface for SQLite's C API. It provides a library of database resource objects and associated functionality to make it easy to write C++17 (and later) programs that rely on SQLite databases.
 
 ### Classes to wrap SQLite resource objects:
 * `Connection`: a database connection (wraps `sqlite3`)
 * `Statement`: a prepared statement (wraps `sqlite3_stmt`)
 * `Blob`: a blob object that enables incremental I/O with BLOBs (wraps `sqlite3_blob`)
+* `Backup`: a backup object that enables support for online database backups (wraps `sqlite3_backup`)
 
 ### Classes to wrap SQLite concepts:
 * `Result`: a result object that abstracts out the result retrieval aspects of `sqlite3_stmt`
@@ -15,18 +16,17 @@ SQLitemm is a C++ wrapper interface for SQLite's C API. It is a non-compatible r
 * `Error`: an exception base class for SQLite error codes; derived classes are provided where they are likely to be useful to be handled separately
 
 ### Notable features:
-* `ResultIterator`: an input iterator that allows for iterating over result rows into objects of arbitrary type as long as the type provides a constructor that processes a `Result` as a row
+* `ResultIterator`: an input iterator that allows for iterating over result rows into objects of arbitrary type as long as the type provides a constructor that processes a `Result` as a row, or the iterator is provided a callback function that converts a `Result` as a row into an object of the given type
 * `statement << paramA << paramB;`: "stream" parameter values in sequence to bind them
 * `statement[":paramA"] = paramA;`: bind parameters by name
 * Support for binding `NULL` (as `nullptr`), `const char*`, `std::string`, `std::u16string`, and zero-filled blob parameters
 * Support for binding arbitrary text and BLOB parameters through `TextValue` and `BlobValue` respectively
 * Support for binding values of type `T` that may or may not be `NULL` through binding `std::optional<T>`
-* `result >> valueA >> valueB;`: "stream" the fields of a result row in sequence to their destination values, implicitly performing type conversion
+* `result >> valueA >> valueB;`: "stream" the fields of a result row in sequence to their destination values, implicitly performing type conversion, including conversion to `std::optional` for fields that might contain `NULL`
 * `valueA = result[0];`: implicitly convert the fields of a result row by index to the desired type
-* `auto valueA = result[0].to_optional<int>();`: convert the fields of a result row to `std::optional`, hence allowing for fields that might contain `NULL` (also available for "streaming" the fields of a result row)
-* Support for retrieving arbitrary UTF-8 text, UTF-16 text, and BLOB values by providing function objects to perform the retrieval
+* `valueA = result[0].to_optional<int>();`: convert the fields of a result row to `std::optional`, hence allowing for fields that might contain `NULL`
+* Support for retrieving arbitrary UTF-8 text, UTF-16 text, and BLOB values by providing callback functions to perform the retrieval
 * Optional "strict typing" on a per-query basis, allowing for the prevention of SQLite automatic type conversions across the SQLite fundamental types when retrieving values
-* Support for online database backups
 * Convenience functions for attaching and detaching databases
 
 ### Future work:
@@ -43,12 +43,15 @@ The `sqlitemm.hpp` header file can be included in your project much like the `sq
 `sqlite3.h` and `sqlite3.c` (SQLite version 3.47.2, originally tested against version 3.32.1) are provided along with this project for ease of automated testing, but you are free to use your own copy of the SQLite header and source with other versions of SQLite.
 
 ### C++ Version
-Due to the use of `std::optional` to handle retrieving fields that might contain `NULL`, SQLitemm must be compiled with respect to C++17 or later.
+Due to the use of `std::optional` to handle binding parameters and retrieving fields that might contain `NULL`, SQLitemm must be compiled with respect to C++17 or later.
+
+### Doxygen
+If Doxygen is available, it can be used to generate documentation by running `make docs`.
 
 Example Usage
 -------------
 If we imagine a one-off retrieval of some unspecified game results consisting of names and corresponding scores from a table where scores are greater than some threshold parameter:
-```C++
+```C
 std::vector<GameResult> retrieve_results(double threshold)
 {
     auto connection = sqlitemm::Connection(DATABASE_FILENAME);
@@ -66,6 +69,10 @@ std::vector<GameResult> retrieve_results(double threshold)
 If there is a database-related error, an exception of type `sqlitemm::Error` will be thrown.
 
 Additional usage examples can be found in the examples folder.
+
+History
+-------
+The Sqlitemm of 2020 and later is a non-compatible rewrite of the 2005 SQLitemm project that aimed to provide "resource encapsulation and management while attempting to maintain minimal deviation from the original C interface". This rewrite has less concern about deviating from the original C interface, and makes extensive use of post-C++11 features such as the use of `std::optional` to model values that could contain `NULL`.
 
 Legal
 -----
