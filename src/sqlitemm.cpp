@@ -239,6 +239,80 @@ namespace sqlitemm
         sqlite3_busy_timeout(db, ms);
     }
 
+    void Connection::create_scalar_function(
+        const std::string& function_name,
+        int num_args,
+        int text_encoding,
+        void* app_user_data,
+        void (*func_callback)(sqlite3_context*, int, sqlite3_value**),
+        void (*destroy_callback)(void*)
+    )
+    {
+        int result_code = sqlite3_create_function_v2(
+            db,
+            function_name.c_str(),
+            num_args,
+            text_encoding,
+            app_user_data,
+            func_callback,
+            nullptr,
+            nullptr,
+            destroy_callback
+        );
+        check_result_ok(db, result_code);
+    }
+
+    void Connection::create_aggregate_function(
+        const std::string& function_name,
+        int num_args,
+        int text_encoding,
+        void* app_user_data,
+        void (*step_callback)(sqlite3_context*, int, sqlite3_value**),
+        void (*final_callback)(sqlite3_context*),
+        void (*destroy_callback)(void*)
+    )
+    {
+        int result_code = sqlite3_create_function_v2(
+            db,
+            function_name.c_str(),
+            num_args,
+            text_encoding,
+            app_user_data,
+            nullptr,
+            step_callback,
+            final_callback,
+            destroy_callback
+        );
+        check_result_ok(db, result_code);
+    }
+
+    void Connection::create_window_function(
+        const std::string& function_name,
+        int num_args,
+        int text_encoding,
+        void* app_user_data,
+        void (*step_callback)(sqlite3_context*, int, sqlite3_value**),
+        void (*final_callback)(sqlite3_context*),
+        void (*value_callback)(sqlite3_context*),
+        void (*inverse_callback)(sqlite3_context*, int, sqlite3_value**),
+        void (*destroy_callback)(void*)
+    )
+    {
+        int result_code = sqlite3_create_window_function(
+            db,
+            function_name.c_str(),
+            num_args,
+            text_encoding,
+            app_user_data,
+            step_callback,
+            final_callback,
+            value_callback,
+            inverse_callback,
+            destroy_callback
+        );
+        check_result_ok(db, result_code);
+    }
+
     void Connection::clean_stmt_ptrs()
     {
         stmt_ptrs.erase(std::remove_if(stmt_ptrs.begin(), stmt_ptrs.end(), [](auto&& p) { return p.expired(); }),

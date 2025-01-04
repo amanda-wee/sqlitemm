@@ -178,6 +178,45 @@ namespace sqlitemm
          * by the relevant execute or step function.
          */
         void set_busy_timeout(int ms) noexcept;
+
+        /**
+         * Creates a SQL scalar function by forwarding the provided arguments
+         * to a SQLite function creation routine for SQL scalar functions.
+         */
+        void create_scalar_function(const std::string& function_name,
+                                    int num_args,
+                                    int text_encoding,
+                                    void* app_user_data,
+                                    void (*func_callback)(sqlite3_context*, int, sqlite3_value**),
+                                    void (*destroy_callback)(void*) = nullptr);
+
+        /**
+         * Creates a SQL aggregate function by forwarding the provided
+         * arguments to a SQLite function creation routine for SQL aggregate
+         * functions.
+         */
+        void create_aggregate_function(const std::string& function_name,
+                                       int num_args,
+                                       int text_encoding,
+                                       void* app_user_data,
+                                       void (*step_callback)(sqlite3_context*, int, sqlite3_value**),
+                                       void (*final_callback)(sqlite3_context*),
+                                       void (*destroy_callback)(void*) = nullptr);
+
+        /**
+         * Creates a SQL window function by forwarding the provided arguments
+         * to a SQLite function creation routine for SQL window functions.
+         */
+        void create_window_function(const std::string& function_name,
+                                    int num_args,
+                                    int text_encoding,
+                                    void* app_user_data,
+                                    void (*step_callback)(sqlite3_context*, int, sqlite3_value**),
+                                    void (*final_callback)(sqlite3_context*),
+                                    void (*value_callback)(sqlite3_context*),
+                                    void (*inverse_callback)(sqlite3_context*, int, sqlite3_value**),
+                                    void (*destroy_callback)(void*) = nullptr);
+
     private:
         sqlite3* db = nullptr; // database connection handle
         // prepared statements that were prepared via this database connection

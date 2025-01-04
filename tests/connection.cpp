@@ -159,6 +159,81 @@ SCENARIO("last_insert_rowid member function is called")
     }
 }
 
+extern "C"
+{
+    void sqlitemm_inc(sqlite3_context*, int, sqlite3_value**);
+    void sqlitemm_sum_step(sqlite3_context*, int, sqlite3_value**);
+    void sqlitemm_sum_final(sqlite3_context*);
+}
+
+SCENARIO("SQL functions can be created")
+{
+    sqlitemm::Connection conn(":memory:");
+
+    GIVEN("a populated table")
+    {
+        REQUIRE_NOTHROW(conn.execute("CREATE TABLE game_results (id INTEGER PRIMARY KEY, name TEXT, score INTEGER);"
+                                     "INSERT INTO game_results (id, name, score) VALUES "
+                                     "(1, 'Alice', 20), (2, 'Bob', 30);"));
+
+        WHEN("SQL scalar function is created")
+        {
+            conn.create_scalar_function("sqlitemm_inc", 1, SQLITE_UTF8 | SQLITE_DETERMINISTIC, nullptr, sqlitemm_inc);
+
+            THEN("results can be retrieved using the SQL scalar function")
+            {
+                auto stmt = conn.prepare("SELECT name, sqlitemm_inc(score) from game_results order by id;");
+                auto result = stmt.execute_query();
+                REQUIRE(result.step());
+                REQUIRE(static_cast<std::string>(result[0]) == "Alice");
+                REQUIRE(static_cast<int>(result[1]) == 21);
+                REQUIRE(result.step());
+                REQUIRE(static_cast<std::string>(result[0]) == "Bob");
+                REQUIRE(static_cast<int>(result[1]) == 31);
+            }
+        }
+
+        WHEN("SQL aggregate function is created")
+        {
+            conn.create_aggregate_function(
+                "sqlitemm_sum", 1, SQLITE_UTF8 | SQLITE_DETERMINISTIC, nullptr, sqlitemm_sum_step, sqlitemm_sum_final
+            );
+
+            THEN("results can be retrieved using the SQL aggregate function")
+            {
+                auto stmt = conn.prepare("SELECT sqlitemm_sum(score) as total from game_results;");
+                auto result = stmt.execute_query();
+                REQUIRE(result.step());
+                REQUIRE(static_cast<int>(result[0]) == 50);
+            }
+        }
+
+        WHEN("SQL window function is created")
+        {
+            // Strictly speaking this creates a non-window aggregate function,
+            // but we simplify for initial testing:
+            conn.create_window_function(
+                "sqlitemm_sum",
+                1,
+                SQLITE_UTF8 | SQLITE_DETERMINISTIC,
+                nullptr,
+                sqlitemm_sum_step,
+                sqlitemm_sum_final,
+                nullptr,
+                nullptr
+            );
+
+            THEN("results can be retrieved using the SQL window function")
+            {
+                auto stmt = conn.prepare("SELECT sqlitemm_sum(score) as total from game_results;");
+                auto result = stmt.execute_query();
+                REQUIRE(result.step());
+                REQUIRE(static_cast<int>(result[0]) == 50);
+            }
+        }
+    }
+}
+
 SCENARIO("attach and detach non-member functions are called")
 {
     sqlitemm::Connection conn(":memory:");
