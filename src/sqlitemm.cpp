@@ -139,9 +139,9 @@ namespace sqlitemm
         return Transaction(db);
     }
 
-    int Connection::changes() const noexcept
+    size_t Connection::changes() const noexcept
     {
-        return sqlite3_changes(db);
+        return static_cast<size_t>(sqlite3_changes64(db));
     }
 
     void Connection::close() noexcept

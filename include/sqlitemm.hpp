@@ -154,7 +154,7 @@ namespace sqlitemm
          * most recently completed INSERT, UPDATE or DELETE statement on
          * the database connection.
          */
-        int changes() const noexcept;
+        size_t changes() const noexcept;
 
         /**
          * Closes the database connection if it is open.
