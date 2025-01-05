@@ -245,6 +245,14 @@ namespace sqlitemm
         long long last_insert_rowid() const noexcept;
 
         /**
+         * Loads an SQLite extension library from the named file.
+         *
+         * If the entry point name is an empty string, SQLite will try to come
+         * up with an entry point name on its own.
+         */
+        void load_extension(const std::string& filename, const std::string entry_point_name = std::string{});
+
+        /**
          * Connects to the database given by filename.
          */
         void open(const std::string& filename);

@@ -35,6 +35,7 @@ Features
 * Support for creating SQL functions (scalar, aggregate, and window)
 * Support for creating SQL collations
 * Support for database operation interrupts
+* Support for loading SQLite extension libraries
 * Optional "strict typing" on a per-query basis, allowing for the prevention of SQLite automatic type conversions across the SQLite fundamental types when retrieving values
 * Convenience functions for attaching and detaching databases
 

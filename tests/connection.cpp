@@ -389,3 +389,32 @@ SCENARIO("interrupts can be started and checked")
     // so we shall just run it to make sure it does not throw:
     REQUIRE_NOTHROW(conn.interrupt());
 }
+
+SCENARIO("SQLite extensions can be loaded")
+{
+    sqlitemm::Connection conn(":memory:");
+    int load_extension_enabled = 0;
+    conn.set_config(SQLITE_DBCONFIG_ENABLE_LOAD_EXTENSION, 1, &load_extension_enabled);
+
+    // It is difficult to simulate loading an extension,
+    // so we will test failure:
+    WHEN("an invalid extension is attempted to be loaded")
+    {
+        try
+        {
+            conn.load_extension("test_for_failure");
+        }
+        catch(const sqlitemm::Error& e)
+        {
+            std::string error_message = e.what();
+            if (load_extension_enabled)
+            {
+                REQUIRE(error_message.find("(no such file)") != std::string::npos);
+            }
+            else
+            {
+                REQUIRE(error_message == "not authorized");
+            }
+        }
+    }
+}

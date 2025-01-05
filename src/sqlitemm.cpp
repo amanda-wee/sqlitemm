@@ -307,6 +307,24 @@ namespace sqlitemm
         return static_cast<long long>(sqlite3_last_insert_rowid(db));
     }
 
+    void Connection::load_extension(const std::string& filename, const std::string entry_point_name)
+    {
+        char* error_message = nullptr;
+        int result_code = sqlite3_load_extension(
+            db, filename.c_str(), entry_point_name.empty() ? nullptr : entry_point_name.c_str(), &error_message
+        );
+        if (result_code != SQLITE_OK)
+        {
+            std::string message{"failed to load SQLite extension"};
+            if (error_message)
+            {
+                message = error_message;
+                sqlite3_free(error_message);
+            }
+            throw Error(message, result_code);
+        }
+    }
+
     void Connection::open(const std::string& filename)
     {
         assert(!db);
