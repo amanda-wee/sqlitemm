@@ -268,3 +268,27 @@ SCENARIO("attach and detach non-member functions are called")
         }
     }
 }
+
+SCENARIO("database configuration can be modified")
+{
+    sqlitemm::Connection conn(":memory:");
+
+    GIVEN("a table with one row and a view of that table")
+    {
+        REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT);"
+                                     "INSERT INTO person (name) VALUES ('Alice');"
+                                     "CREATE VIEW person_view AS SELECT * FROM person;"));
+        // Check that the view can be queried:
+        REQUIRE_NOTHROW(conn.execute("SELECT COUNT(*) FROM person_view;"));
+
+        WHEN("views are disabled")
+        {
+            conn.set_config(SQLITE_DBCONFIG_ENABLE_VIEW, 0, nullptr);
+
+            THEN("the view cannot be queried")
+            {
+                REQUIRE_THROWS_AS(conn.execute("SELECT COUNT(*) FROM person_view;"), sqlitemm::Error);
+            }
+        }
+    }
+}

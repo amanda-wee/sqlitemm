@@ -44,6 +44,37 @@ namespace sqlitemm
     class Transaction;
 
     /**
+     * Base class for sqlitemm exceptions that wrap SQLite errors.
+     */
+    class Error : public std::exception
+    {
+    public:
+        /**
+         * Constructs an Error with the given message and error code.
+         */
+        Error(const std::string& message, int code) : what_arg(std::make_shared<std::string>(message)), error_code(code) {}
+
+        /**
+         * Returns the full error message.
+         */
+        virtual const char* what() const noexcept override
+        {
+            return what_arg->c_str();
+        }
+
+        /**
+         * Returns the error code.
+         */
+        virtual int code() const noexcept
+        {
+            return error_code;
+        }
+    private:
+        std::shared_ptr<std::string> what_arg; // full error message
+        int error_code; // error code from SQLite
+    };
+
+    /**
      * Models a SQLite database connection.
      */
     class Connection
@@ -217,6 +248,18 @@ namespace sqlitemm
                                     void (*inverse_callback)(sqlite3_context*, int, sqlite3_value**),
                                     void (*destroy_callback)(void*) = nullptr);
 
+        /**
+         * Sets the database configuration option denoted by config_option.
+         */
+        template<typename... Ts>
+        void set_config(int config_option, Ts... args)
+        {
+            int result_code = sqlite3_db_config(db, config_option, args...);
+            if (result_code != SQLITE_OK)
+            {
+                throw Error("could not set database configuration", result_code);
+            }
+        }
     private:
         sqlite3* db = nullptr; // database connection handle
         // prepared statements that were prepared via this database connection
@@ -1553,37 +1596,6 @@ namespace sqlitemm
         explicit Transaction(sqlite3* db);
 
         friend Transaction Connection::begin_transaction();
-    };
-
-    /**
-     * Base class for sqlitemm exceptions that wrap SQLite errors.
-     */
-    class Error : public std::exception
-    {
-    public:
-        /**
-         * Constructs an Error with the given message and error code.
-         */
-        Error(const std::string& message, int code) : what_arg(std::make_shared<std::string>(message)), error_code(code) {}
-
-        /**
-         * Returns the full error message.
-         */
-        virtual const char* what() const noexcept override
-        {
-            return what_arg->c_str();
-        }
-
-        /**
-         * Returns the error code.
-         */
-        virtual int code() const noexcept
-        {
-            return error_code;
-        }
-    private:
-        std::shared_ptr<std::string> what_arg; // full error message
-        int error_code; // error code from SQLite
     };
 
     /**
