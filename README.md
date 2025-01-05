@@ -53,7 +53,7 @@ If [Doxygen](https://www.doxygen.nl/) is available, it can be used to generate d
 
 Example Usage
 -------------
-If we imagine a one-off retrieval of some unspecified game results consisting of names and corresponding scores from a table where scores are greater than some threshold parameter:
+Suppose we want to retrieve some unspecified game results consisting of names and corresponding scores from a table where scores are greater than some threshold parameter, into a container of `GameResult` objects:
 ```cpp
 std::vector<GameResult> retrieve_results(double threshold)
 {
@@ -78,9 +78,9 @@ Background
 The SQLitemm of 2020 and later is a non-compatible rewrite of the 2005 SQLitemm project that aimed to provide "resource encapsulation and management while attempting to maintain minimal deviation from the original C interface". This rewrite has less concern about deviating from the original C interface, and makes extensive use of post-C++11 features such as the use of `std::optional` to model values that could contain `NULL`.
 
 ### Future work
-* Augmenting `Transaction` to support SQLite savepoints
-* Adding other functionality associated with `sqlite3` to `Connection`
-* Adding miscellaneous functionality to the `sqlitemm` namespace
+* Augment `Transaction` to support SQLite savepoints
+* Add miscellaneous functionality to the `sqlitemm` namespace
+* Improve the automated test coverage
 * Only forward declare the parts of the `sqlite3.h` header that are needed in `sqlitemm.h` rather than including the entire header
 
 Legal
