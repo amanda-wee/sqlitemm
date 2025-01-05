@@ -134,32 +134,14 @@ namespace sqlitemm
         }
     }
 
-    void Connection::open(const std::string& filename)
+    Transaction Connection::begin_transaction()
     {
-        assert(!db);
-        int result_code = sqlite3_open(filename.c_str(), &db);
-        if (result_code != SQLITE_OK)
-        {
-            check_open_ok(db, result_code);
-        }
-        sqlite3_extended_result_codes(db, 1);
+        return Transaction(db);
     }
 
-    void Connection::open(const std::u16string& filename)
+    int Connection::changes() const noexcept
     {
-        assert(!db);
-        int result_code = sqlite3_open16(filename.c_str(), &db);
-        check_open_ok(db, result_code);
-        sqlite3_extended_result_codes(db, 1);
-    }
-
-    void Connection::open(const std::string& filename, int flags, const std::string& vfs)
-    {
-        assert(!db);
-        const char *vfs_name = vfs.empty() ? nullptr : vfs.c_str();
-        int result_code = sqlite3_open_v2(filename.c_str(), &db, flags, vfs_name);
-        check_open_ok(db, result_code);
-        sqlite3_extended_result_codes(db, 1);
+        return sqlite3_changes(db);
     }
 
     void Connection::close() noexcept
@@ -189,56 +171,28 @@ namespace sqlitemm
         db = nullptr;
     }
 
-    int Connection::changes() const noexcept
-    {
-        return sqlite3_changes(db);
-    }
-
-    void Connection::execute(const std::string& sql)
-    {
-        assert(db && "database connection must exist");
-
-        int result_code = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr);
-        check_result_ok(db, result_code);
-    }
-
-    long long Connection::last_insert_rowid() const noexcept
-    {
-        return static_cast<long long>(sqlite3_last_insert_rowid(db));
-    }
-
-    Statement Connection::prepare(const std::string& sql)
-    {
-        assert(db && "database connection must exist");
-
-        sqlite3_stmt* stmt;
-        int result_code = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
-        check_result_ok(db, result_code);
-
-        auto stmt_ptr = std::make_shared<sqlite3_stmt*>(stmt);
-        clean_stmt_ptrs();
-        stmt_ptrs.push_back(stmt_ptr);
-        return Statement(stmt_ptr);
-    }
-
-    Transaction Connection::begin_transaction()
-    {
-        return Transaction(db);
-    }
-
-    Blob Connection::open_blob(
-        const std::string& database, const std::string& table, const std::string& column, size_t row, int flags
+    void Connection::create_aggregate_function(
+        const std::string& function_name,
+        int num_args,
+        int text_encoding,
+        void* app_user_data,
+        void (*step_callback)(sqlite3_context*, int, sqlite3_value**),
+        void (*final_callback)(sqlite3_context*),
+        void (*destroy_callback)(void*)
     )
     {
-        sqlite3_blob* blob = nullptr;
-        int result_code = sqlite3_blob_open(db, database.c_str(), table.c_str(), column.c_str(), row, flags, &blob);
+        int result_code = sqlite3_create_function_v2(
+            db,
+            function_name.c_str(),
+            num_args,
+            text_encoding,
+            app_user_data,
+            nullptr,
+            step_callback,
+            final_callback,
+            destroy_callback
+        );
         check_result_ok(db, result_code);
-        return Blob(db, blob);
-    }
-
-    void Connection::set_busy_timeout(int ms) noexcept
-    {
-        sqlite3_busy_timeout(db, ms);
     }
 
     void Connection::create_scalar_function(
@@ -259,30 +213,6 @@ namespace sqlitemm
             func_callback,
             nullptr,
             nullptr,
-            destroy_callback
-        );
-        check_result_ok(db, result_code);
-    }
-
-    void Connection::create_aggregate_function(
-        const std::string& function_name,
-        int num_args,
-        int text_encoding,
-        void* app_user_data,
-        void (*step_callback)(sqlite3_context*, int, sqlite3_value**),
-        void (*final_callback)(sqlite3_context*),
-        void (*destroy_callback)(void*)
-    )
-    {
-        int result_code = sqlite3_create_function_v2(
-            db,
-            function_name.c_str(),
-            num_args,
-            text_encoding,
-            app_user_data,
-            nullptr,
-            step_callback,
-            final_callback,
             destroy_callback
         );
         check_result_ok(db, result_code);
@@ -313,6 +243,76 @@ namespace sqlitemm
             destroy_callback
         );
         check_result_ok(db, result_code);
+    }
+
+    void Connection::execute(const std::string& sql)
+    {
+        assert(db && "database connection must exist");
+
+        int result_code = sqlite3_exec(db, sql.c_str(), nullptr, nullptr, nullptr);
+        check_result_ok(db, result_code);
+    }
+
+    long long Connection::last_insert_rowid() const noexcept
+    {
+        return static_cast<long long>(sqlite3_last_insert_rowid(db));
+    }
+
+    void Connection::open(const std::string& filename)
+    {
+        assert(!db);
+        int result_code = sqlite3_open(filename.c_str(), &db);
+        if (result_code != SQLITE_OK)
+        {
+            check_open_ok(db, result_code);
+        }
+        sqlite3_extended_result_codes(db, 1);
+    }
+
+    void Connection::open(const std::u16string& filename)
+    {
+        assert(!db);
+        int result_code = sqlite3_open16(filename.c_str(), &db);
+        check_open_ok(db, result_code);
+        sqlite3_extended_result_codes(db, 1);
+    }
+
+    void Connection::open(const std::string& filename, int flags, const std::string& vfs)
+    {
+        assert(!db);
+        const char *vfs_name = vfs.empty() ? nullptr : vfs.c_str();
+        int result_code = sqlite3_open_v2(filename.c_str(), &db, flags, vfs_name);
+        check_open_ok(db, result_code);
+        sqlite3_extended_result_codes(db, 1);
+    }
+
+    Blob Connection::open_blob(
+        const std::string& database, const std::string& table, const std::string& column, size_t row, int flags
+    )
+    {
+        sqlite3_blob* blob = nullptr;
+        int result_code = sqlite3_blob_open(db, database.c_str(), table.c_str(), column.c_str(), row, flags, &blob);
+        check_result_ok(db, result_code);
+        return Blob(db, blob);
+    }
+
+    Statement Connection::prepare(const std::string& sql)
+    {
+        assert(db && "database connection must exist");
+
+        sqlite3_stmt* stmt;
+        int result_code = sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr);
+        check_result_ok(db, result_code);
+
+        auto stmt_ptr = std::make_shared<sqlite3_stmt*>(stmt);
+        clean_stmt_ptrs();
+        stmt_ptrs.push_back(stmt_ptr);
+        return Statement(stmt_ptr);
+    }
+
+    void Connection::set_busy_timeout(int ms) noexcept
+    {
+        sqlite3_busy_timeout(db, ms);
     }
 
     void Connection::clean_stmt_ptrs()

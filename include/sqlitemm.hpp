@@ -145,6 +145,73 @@ namespace sqlitemm
         }
 
         /**
+         * Begins a transaction and returns it.
+         */
+        Transaction begin_transaction();
+
+        /**
+         * Returns the number of rows modified, inserted or deleted by the
+         * most recently completed INSERT, UPDATE or DELETE statement on
+         * the database connection.
+         */
+        int changes() const noexcept;
+
+        /**
+         * Closes the database connection if it is open.
+         */
+        void close() noexcept;
+
+        /**
+         * Creates a SQL aggregate function by forwarding the provided
+         * arguments to a SQLite function creation routine for SQL aggregate
+         * functions.
+         */
+        void create_aggregate_function(const std::string& function_name,
+                                       int num_args,
+                                       int text_encoding,
+                                       void* app_user_data,
+                                       void (*step_callback)(sqlite3_context*, int, sqlite3_value**),
+                                       void (*final_callback)(sqlite3_context*),
+                                       void (*destroy_callback)(void*) = nullptr);
+
+        /**
+         * Creates a SQL scalar function by forwarding the provided arguments
+         * to a SQLite function creation routine for SQL scalar functions.
+         */
+        void create_scalar_function(const std::string& function_name,
+                                    int num_args,
+                                    int text_encoding,
+                                    void* app_user_data,
+                                    void (*func_callback)(sqlite3_context*, int, sqlite3_value**),
+                                    void (*destroy_callback)(void*) = nullptr);
+
+        /**
+         * Creates a SQL window function by forwarding the provided arguments
+         * to a SQLite function creation routine for SQL window functions.
+         */
+        void create_window_function(const std::string& function_name,
+                                    int num_args,
+                                    int text_encoding,
+                                    void* app_user_data,
+                                    void (*step_callback)(sqlite3_context*, int, sqlite3_value**),
+                                    void (*final_callback)(sqlite3_context*),
+                                    void (*value_callback)(sqlite3_context*),
+                                    void (*inverse_callback)(sqlite3_context*, int, sqlite3_value**),
+                                    void (*destroy_callback)(void*) = nullptr);
+
+        /**
+         * Executes zero or more UTF-8 encoded, semicolon-separate SQL
+         * statements specified by the sql parameter.
+         */
+        void execute(const std::string& sql);
+
+        /**
+         * Returns the last insert row id, or 0 if there has not been a successful
+         * insertion.
+         */
+        long long last_insert_rowid() const noexcept;
+
+        /**
          * Connects to the database given by filename.
          */
         void open(const std::string& filename);
@@ -161,28 +228,11 @@ namespace sqlitemm
         void open(const std::string& filename, int flags, const std::string& vfs = std::string{});
 
         /**
-         * Closes the database connection if it is open.
+         * Opens a blob for incremental I/O and returns the blob object.
          */
-        void close() noexcept;
-
-        /**
-         * Returns the number of rows modified, inserted or deleted by the
-         * most recently completed INSERT, UPDATE or DELETE statement on
-         * the database connection.
-         */
-        int changes() const noexcept;
-
-        /**
-         * Executes zero or more UTF-8 encoded, semicolon-separate SQL
-         * statements specified by the sql parameter.
-         */
-        void execute(const std::string& sql);
-
-        /**
-         * Returns the last insert row id, or 0 if there has not been a successful
-         * insertion.
-         */
-        long long last_insert_rowid() const noexcept;
+        Blob open_blob(
+            const std::string& database, const std::string& table, const std::string& column, size_t row, int flags
+        );
 
         /**
          * Returns a prepared statement for the single SQL statement
@@ -191,62 +241,12 @@ namespace sqlitemm
         Statement prepare(const std::string& sql);
 
         /**
-         * Begins a transaction and returns it.
-         */
-        Transaction begin_transaction();
-
-        /**
-         * Opens a blob for incremental I/O and returns the blob object.
-         */
-        Blob open_blob(
-            const std::string& database, const std::string& table, const std::string& column, size_t row, int flags
-        );
-
-        /**
          * Sets a busy handler that sleeps multiple times until at least ms
          * milliseconds of sleeping have accumulated when a table is locked.
          * If the table remains locked after sleeping, BusyError will be thrown
          * by the relevant execute or step function.
          */
         void set_busy_timeout(int ms) noexcept;
-
-        /**
-         * Creates a SQL scalar function by forwarding the provided arguments
-         * to a SQLite function creation routine for SQL scalar functions.
-         */
-        void create_scalar_function(const std::string& function_name,
-                                    int num_args,
-                                    int text_encoding,
-                                    void* app_user_data,
-                                    void (*func_callback)(sqlite3_context*, int, sqlite3_value**),
-                                    void (*destroy_callback)(void*) = nullptr);
-
-        /**
-         * Creates a SQL aggregate function by forwarding the provided
-         * arguments to a SQLite function creation routine for SQL aggregate
-         * functions.
-         */
-        void create_aggregate_function(const std::string& function_name,
-                                       int num_args,
-                                       int text_encoding,
-                                       void* app_user_data,
-                                       void (*step_callback)(sqlite3_context*, int, sqlite3_value**),
-                                       void (*final_callback)(sqlite3_context*),
-                                       void (*destroy_callback)(void*) = nullptr);
-
-        /**
-         * Creates a SQL window function by forwarding the provided arguments
-         * to a SQLite function creation routine for SQL window functions.
-         */
-        void create_window_function(const std::string& function_name,
-                                    int num_args,
-                                    int text_encoding,
-                                    void* app_user_data,
-                                    void (*step_callback)(sqlite3_context*, int, sqlite3_value**),
-                                    void (*final_callback)(sqlite3_context*),
-                                    void (*value_callback)(sqlite3_context*),
-                                    void (*inverse_callback)(sqlite3_context*, int, sqlite3_value**),
-                                    void (*destroy_callback)(void*) = nullptr);
 
         /**
          * Sets the database configuration option denoted by config_option.
