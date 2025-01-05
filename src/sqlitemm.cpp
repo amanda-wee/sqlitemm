@@ -195,6 +195,30 @@ namespace sqlitemm
         check_result_ok(db, result_code);
     }
 
+    void Connection::create_collation(
+        const std::string& collation_name,
+        int text_encoding,
+        void* app_user_data,
+        int (*compare_callback)(void*, int, const void*, int, const void*),
+        void (*destroy_callback)(void*)
+    )
+    {
+        int result_code = SQLITE_OK;
+        if (destroy_callback)
+        {
+            result_code = sqlite3_create_collation_v2(
+                db, collation_name.c_str(), text_encoding, app_user_data, compare_callback, destroy_callback
+            );
+        }
+        else
+        {
+            result_code = sqlite3_create_collation(
+                db, collation_name.c_str(), text_encoding, app_user_data, compare_callback
+            );
+        }
+        check_result_ok(db, result_code);
+    }
+
     void Connection::create_scalar_function(
         const std::string& function_name,
         int num_args,

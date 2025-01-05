@@ -292,3 +292,34 @@ SCENARIO("database configuration can be modified")
         }
     }
 }
+
+extern "C"
+{
+    int sqlitemm_reverse_nocase(void*, int, const void*, int, const void*);
+}
+
+SCENARIO("collations can be created")
+{
+    sqlitemm::Connection conn(":memory:");
+
+    WHEN("a collation is created")
+    {
+        conn.create_collation("REVERSE_NOCASE", SQLITE_UTF8, nullptr, sqlitemm_reverse_nocase);
+
+        THEN("a table can be created with a column having the new collation")
+        {
+            REQUIRE_NOTHROW(
+                conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT COLLATE REVERSE_NOCASE);")
+            );
+
+            REQUIRE_NOTHROW(conn.execute("INSERT INTO person (id, name) VALUES (1, 'Alice'), (2, 'Bob');"));
+
+            auto stmt = conn.prepare("SELECT name FROM person ORDER by name;");
+            auto result = stmt.execute_query();
+            REQUIRE(result.step());
+            REQUIRE(static_cast<std::string>(result[0]) == "Bob");
+            REQUIRE(result.step());
+            REQUIRE(static_cast<std::string>(result[0]) == "Alice");
+        }
+    }
+}

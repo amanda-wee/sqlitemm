@@ -1,5 +1,5 @@
 /************************************************************************************************************
- * SQLitemm tests source file primarily for testing SQL function creation functionality
+ * SQLitemm tests source file for defining extern "C" callback functions
  *
  * Copyright 2025 Amanda Wee
  *
@@ -15,12 +15,16 @@
 
 #include "sqlite3.h"
 
+/* SQL scalar function */
+
 /* Increment the argument by 1 */
 void sqlitemm_inc(sqlite3_context* context, int argc, sqlite3_value** argv)
 {
     int arg_value = sqlite3_value_int(argv[0]);
     sqlite3_result_int(context, arg_value + 1);
 }
+
+/* SQL aggregate function */
 
 typedef struct sqlitemmSumContext
 {
@@ -40,4 +44,21 @@ void sqlitemm_sum_final(sqlite3_context* context)
 {
     sqlitemmSumContext* sum_context = sqlite3_aggregate_context(context, 0);
     sqlite3_result_int(context, sum_context ? sum_context->sum : 0);
+}
+
+/* SQL collation */
+
+int sqlitemm_reverse_nocase(void* app_user_data, int lhs_num_bytes, const void* lhs, int rhs_num_bytes, const void* rhs)
+{
+    int n = (lhs_num_bytes < rhs_num_bytes) ? lhs_num_bytes : rhs_num_bytes;
+    int result = -sqlite3_strnicmp(lhs, rhs, n);
+    if (result != 0)
+    {
+        return result;
+    }
+    if (lhs_num_bytes == rhs_num_bytes)
+    {
+        return 0;
+    }
+    return (lhs_num_bytes < rhs_num_bytes) ? 1 : -1;
 }

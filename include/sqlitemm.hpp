@@ -175,6 +175,16 @@ namespace sqlitemm
                                        void (*destroy_callback)(void*) = nullptr);
 
         /**
+         * Creates a SQL collation by forwarding the provided arguments to a
+         * SQLite collation creation routine.
+         */
+        void create_collation(const std::string& collation_name,
+                              int text_encoding,
+                              void* app_user_data,
+                              int (*compare_callback)(void*, int, const void*, int, const void*),
+                              void (*destroy_callback)(void*) = nullptr);
+
+        /**
          * Creates a SQL scalar function by forwarding the provided arguments
          * to a SQLite function creation routine for SQL scalar functions.
          */
