@@ -216,6 +216,18 @@ namespace sqlitemm
         void execute(const std::string& sql);
 
         /**
+         * Returns the most recent result code associated with the database
+         * connection.
+         */
+        int get_last_error_code() const noexcept;
+
+        /**
+         * Returns the most recent error message associated with the database
+         * connection, or an empty string if there is none.
+         */
+        std::string get_last_error_message() const;
+
+        /**
          * Returns the last insert row id, or 0 if there has not been a successful
          * insertion.
          */

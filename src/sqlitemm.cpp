@@ -277,6 +277,21 @@ namespace sqlitemm
         check_result_ok(db, result_code);
     }
 
+    int Connection::get_last_error_code() const noexcept
+    {
+        return sqlite3_extended_errcode(db);
+    }
+
+    std::string Connection::get_last_error_message() const
+    {
+        auto errmsg = sqlite3_errmsg(db);
+        if (!errmsg)
+        {
+            return std::string{};
+        }
+        return std::string{errmsg};
+    }
+
     long long Connection::last_insert_rowid() const noexcept
     {
         return static_cast<long long>(sqlite3_last_insert_rowid(db));

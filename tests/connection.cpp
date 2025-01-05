@@ -323,3 +323,29 @@ SCENARIO("collations can be created")
         }
     }
 }
+
+SCENARIO("most recent error code and message can be retrieved")
+{
+    sqlitemm::Connection conn(":memory:");
+    REQUIRE(conn.get_last_error_code() == SQLITE_OK);
+    REQUIRE(conn.get_last_error_message() == "not an error");
+
+    WHEN("there is an error")
+    {
+        try
+        {
+            conn.execute("CREATE TABLE with a syntax error;");
+            REQUIRE_FALSE("is not reached");
+        }
+        catch (const sqlitemm::Error& e)
+        {
+            REQUIRE(conn.get_last_error_code() == e.code());
+            auto extended_errmsg = std::string{e.what()};
+            REQUIRE(extended_errmsg.find(conn.get_last_error_message()) == 0);
+        }
+        catch (const std::exception& e)
+        {
+            REQUIRE_FALSE("other exception is not thrown");
+        }
+    }
+}
