@@ -513,7 +513,7 @@ namespace sqlitemm
         /**
          * Returns the size of the blob in bytes.
          */
-        size_t size() const;
+        size_t size() const noexcept;
 
         /**
          * Reopens the blob to the specified row in the original table and

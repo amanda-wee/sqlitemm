@@ -446,7 +446,7 @@ namespace sqlitemm
         check_result_ok(db, result_code);
     }
 
-    size_t Blob::size() const
+    size_t Blob::size() const noexcept
     {
         assert(blob);
         return sqlite3_blob_bytes(blob);
