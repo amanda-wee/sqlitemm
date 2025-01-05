@@ -405,13 +405,13 @@ namespace sqlitemm
         }
     }
 
-    int Backup::pages_remaining()
+    int Backup::pages_remaining() const noexcept
     {
         assert(backup);
         return sqlite3_backup_remaining(backup);
     }
 
-    int Backup::page_count()
+    int Backup::page_count() const noexcept
     {
         assert(backup);
         return sqlite3_backup_pagecount(backup);

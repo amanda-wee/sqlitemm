@@ -375,13 +375,13 @@ namespace sqlitemm
          * Returns the number of pages remaining after the most recent call to
          * step().
          */
-        int pages_remaining();
+        int pages_remaining() const noexcept;
 
         /**
          * Returns the total number of pages after the most recent call to
          * step().
          */
-        int page_count();
+        int page_count() const noexcept;
 
         /**
          * Closes the backup handle and releases all resources associated with
