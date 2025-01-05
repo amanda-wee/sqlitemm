@@ -354,6 +354,11 @@ namespace sqlitemm
         sqlite3_busy_timeout(db, ms);
     }
 
+    size_t Connection::total_changes() const noexcept
+    {
+        return static_cast<size_t>(sqlite3_total_changes64(db));
+    }
+
     void Connection::clean_stmt_ptrs()
     {
         stmt_ptrs.erase(std::remove_if(stmt_ptrs.begin(), stmt_ptrs.end(), [](auto&& p) { return p.expired(); }),

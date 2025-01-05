@@ -349,3 +349,34 @@ SCENARIO("most recent error code and message can be retrieved")
         }
     }
 }
+
+SCENARIO("total number of changes can be counted")
+{
+    sqlitemm::Connection conn(":memory:");
+
+    GIVEN("an empty table")
+    {
+        REQUIRE_NOTHROW(conn.execute("CREATE TABLE person (id INTEGER PRIMARY KEY, name TEXT);"));
+        REQUIRE(conn.total_changes() == 0);
+
+        WHEN("rows have been added")
+        {
+            REQUIRE_NOTHROW(conn.execute("INSERT INTO person (id, name) VALUES (1, 'Alice'), (2, 'Bob');"));
+
+            THEN("those rows are in the count")
+            {
+                REQUIRE(conn.total_changes() == 2);
+
+                WHEN("rows have been updated")
+                {
+                    REQUIRE_NOTHROW(conn.execute("UPDATE person SET name = 'Bobby' WHERE id = 2;"));
+
+                    THEN("the total is updated for the count")
+                    {
+                        REQUIRE(conn.total_changes() == 3);
+                    }
+                }
+            }
+        }
+    }
+}

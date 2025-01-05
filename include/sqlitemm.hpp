@@ -282,6 +282,14 @@ namespace sqlitemm
                 throw Error("could not set database configuration", result_code);
             }
         }
+
+        /**
+         * Returns the total number of rows inserted, modified or deleted by
+         * all INSERT, UPDATE or DELETE statements completed since the
+         * database connection was opened, including those executed as part of
+         * trigger programs.
+         */
+        size_t total_changes() const noexcept;
     private:
         sqlite3* db = nullptr; // database connection handle
         // prepared statements that were prepared via this database connection
