@@ -292,6 +292,16 @@ namespace sqlitemm
         return std::string{errmsg};
     }
 
+    void Connection::interrupt() noexcept
+    {
+        sqlite3_interrupt(db);
+    }
+
+    bool Connection::is_interrupted() const noexcept
+    {
+        return sqlite3_is_interrupted(db) != 0;
+    }
+
     long long Connection::last_insert_rowid() const noexcept
     {
         return static_cast<long long>(sqlite3_last_insert_rowid(db));

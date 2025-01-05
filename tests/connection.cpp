@@ -380,3 +380,12 @@ SCENARIO("total number of changes can be counted")
         }
     }
 }
+
+SCENARIO("interrupts can be started and checked")
+{
+    sqlitemm::Connection conn(":memory:");
+    REQUIRE_FALSE(conn.is_interrupted());
+    // It is difficult to simulate an interrupt,
+    // so we shall just run it to make sure it does not throw:
+    REQUIRE_NOTHROW(conn.interrupt());
+}

@@ -228,6 +228,17 @@ namespace sqlitemm
         std::string get_last_error_message() const;
 
         /**
+         * Causes any pending database operation to abort and return at its
+         * earliest opportunity.
+         */
+        void interrupt() noexcept;
+
+        /**
+         * Returns true if an interrupt is in effect.
+         */
+        bool is_interrupted() const noexcept;
+
+        /**
          * Returns the last insert row id, or 0 if there has not been a successful
          * insertion.
          */
