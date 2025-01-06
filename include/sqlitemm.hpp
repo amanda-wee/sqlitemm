@@ -1001,6 +1001,75 @@ namespace sqlitemm
         }
 
         /**
+         * Binds the elements of the tuple argument in sequence to the current
+         * and subsequent parameters, then advances to the next parameter.
+         * Returns a reference to this prepared statement object. The caller
+         * is responsible for ensuring that the number of elements of the
+         * tuple do not exceed the number of remaining parameters to be bound.
+         */
+        template<typename T1>
+        Statement& operator<<(const std::tuple<T1>& value)
+        {
+            return *this << std::get<0>(value);
+        }
+
+        /**
+         * Binds the elements of the tuple argument in sequence to the current
+         * and subsequent parameters, then advances to the next parameter.
+         * Returns a reference to this prepared statement object. The caller
+         * is responsible for ensuring that the number of elements of the
+         * tuple do not exceed the number of remaining parameters to be bound.
+         */
+        template<typename T1, typename T2>
+        Statement& operator<<(const std::tuple<T1, T2>& value)
+        {
+            using std::get;
+            return *this << get<0>(value) << get<1>(value);
+        }
+
+        /**
+         * Binds the elements of the tuple argument in sequence to the current
+         * and subsequent parameters, then advances to the next parameter.
+         * Returns a reference to this prepared statement object. The caller
+         * is responsible for ensuring that the number of elements of the
+         * tuple do not exceed the number of remaining parameters to be bound.
+         */
+        template<typename T1, typename T2, typename T3>
+        Statement& operator<<(const std::tuple<T1, T2, T3>& value)
+        {
+            using std::get;
+            return *this << get<0>(value) << get<1>(value) << get<2>(value);
+        }
+
+        /**
+         * Binds the elements of the tuple argument in sequence to the current
+         * and subsequent parameters, then advances to the next parameter.
+         * Returns a reference to this prepared statement object. The caller
+         * is responsible for ensuring that the number of elements of the
+         * tuple do not exceed the number of remaining parameters to be bound.
+         */
+        template<typename T1, typename T2, typename T3, typename T4>
+        Statement& operator<<(const std::tuple<T1, T2, T3, T4>& value)
+        {
+            using std::get;
+            return *this << get<0>(value) << get<1>(value) << get<2>(value) << get<3>(value);
+        }
+
+        /**
+         * Binds the elements of the tuple argument in sequence to the current
+         * and subsequent parameters, then advances to the next parameter.
+         * Returns a reference to this prepared statement object. The caller
+         * is responsible for ensuring that the number of elements of the
+         * tuple do not exceed the number of remaining parameters to be bound.
+         */
+        template<typename T1, typename T2, typename T3, typename T4, typename T5>
+        Statement& operator<<(const std::tuple<T1, T2, T3, T4, T5>& value)
+        {
+            using std::get;
+            return *this << get<0>(value) << get<1>(value) << get<2>(value) << get<3>(value) << get<4>(value);
+        }
+
+        /**
          * Allows for parameter binding by name as a null-terminated string.
          */
         Parameter operator[](const char* name)

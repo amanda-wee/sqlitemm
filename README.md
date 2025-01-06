@@ -23,6 +23,7 @@ Features
 * Support for binding `NULL` (as `nullptr`), `const char*`, `std::string`, `std::u16string`, and zero-filled blob parameters
 * Support for binding arbitrary text and BLOB parameters through `TextValue` and `BlobValue` respectively
 * Support for binding values of type `T` that may or may not be `NULL` through binding `std::optional<T>`
+* Support for conveniently binding `std::tuple` objects having 1 to 5 elements inclusive into the same number of parameters
 
 ### Query result retrieval
 * `ResultIterator`: an input iterator that allows for iterating over result rows into objects of arbitrary type as long as the type provides a constructor that processes a `Result` as a row, or the iterator is provided a callback function that converts a `Result` as a row into an object of the given type

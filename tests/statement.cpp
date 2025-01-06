@@ -1,7 +1,7 @@
 /************************************************************************************************************
  * SQLitemm tests source file primarily for testing sqlitemm::Statement
  *
- * Copyright 2020 Amanda Wee
+ * Copyright 2025 Amanda Wee
  *
  * Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in
  * compliance with the License. You may obtain a copy of the License at
@@ -279,7 +279,9 @@ TEST_CASE("Statement::operator<<")
 {
     sqlitemm::Connection conn(":memory:");
     REQUIRE_NOTHROW(
-        conn.execute("CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL);")
+        conn.execute(
+            "CREATE TABLE item (id INTEGER PRIMARY KEY, name TEXT, quantity INTEGER, price REAL, notes TEXT);"
+        )
     );
 
     SECTION("NULL")
@@ -584,6 +586,93 @@ TEST_CASE("Statement::operator<<")
             auto result_value = result[0].to_optional<std::string>();
             REQUIRE(result_value.has_value());
             REQUIRE(*result_value == "test");
+        }
+    }
+
+    SECTION("std::tuple")
+    {
+        SECTION("one element tuple")
+        {
+            auto insert_statement = conn.prepare("INSERT INTO item (name) VALUES (:name);");
+            auto values = std::make_tuple(std::string{"Alice"});
+            REQUIRE_NOTHROW(insert_statement << values);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT count(*) FROM item WHERE name = 'Alice';");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            REQUIRE(static_cast<int>(result[0]) == 1);
+        }
+
+        SECTION("two element tuple")
+        {
+            auto insert_statement = conn.prepare("INSERT INTO item (name, quantity) VALUES (:name, :quantity);");
+            auto values = std::make_tuple(std::string{"Alice"}, 10);
+            REQUIRE_NOTHROW(insert_statement << values);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare("SELECT count(*) FROM item WHERE name = 'Alice' AND quantity = 10;");
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            REQUIRE(static_cast<int>(result[0]) == 1);
+        }
+
+        SECTION("three element tuple")
+        {
+            auto insert_statement = conn.prepare(
+                "INSERT INTO item (name, quantity, price) VALUES (:name, :quantity, :price)"
+            );
+            auto values = std::make_tuple(std::string{"Alice"}, 10, 12.45);
+            REQUIRE_NOTHROW(insert_statement << values);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare(
+                "SELECT count(*) FROM item WHERE name = 'Alice' AND quantity = 10 AND price BETWEEN 12.44 AND 12.46;"
+            );
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            REQUIRE(static_cast<int>(result[0]) == 1);
+        }
+
+        SECTION("four element tuple")
+        {
+            auto insert_statement = conn.prepare(
+                "INSERT INTO item (name, quantity, price, notes) VALUES (:name, :quantity, :price, :notes);"
+            );
+            auto values = std::make_tuple(std::string{"Alice"}, std::optional<int>{}, 12.45, "COD");
+            REQUIRE_NOTHROW(insert_statement << values);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare(
+                "SELECT count(*) FROM item WHERE name = 'Alice' AND quantity IS NULL "
+                "AND price BETWEEN 12.44 AND 12.46 AND notes = 'COD';"
+            );
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            REQUIRE(static_cast<int>(result[0]) == 1);
+        }
+
+        SECTION("five element tuple")
+        {
+            auto insert_statement = conn.prepare(
+                "INSERT INTO item (id, name, quantity, price, notes) VALUES (:id, :name, :quantity, :price, :notes);"
+            );
+            auto values = std::make_tuple(1, std::string{"Alice"}, 10, 12.45, "COD");
+            REQUIRE_NOTHROW(insert_statement << values);
+            insert_statement.execute();
+            insert_statement.finalize();
+
+            auto select_statement = conn.prepare(
+                "SELECT count(*) FROM item WHERE id = 1 AND name = 'Alice' AND quantity = 10 AND "
+                "price BETWEEN 12.44 AND 12.46 AND notes = 'COD';"
+            );
+            auto result = select_statement.execute_query();
+            REQUIRE(result.step());
+            REQUIRE(static_cast<int>(result[0]) == 1);
         }
     }
 }
