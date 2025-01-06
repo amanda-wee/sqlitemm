@@ -488,7 +488,7 @@ TEST_CASE("Statement::operator<<")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<int>();
+            auto result_value = result[0].as_optional<int>();
             REQUIRE_FALSE(result_value.has_value());
         }
 
@@ -501,7 +501,7 @@ TEST_CASE("Statement::operator<<")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<int>();
+            auto result_value = result[0].as_optional<int>();
             REQUIRE_FALSE(result_value.has_value());
         }
 
@@ -515,7 +515,7 @@ TEST_CASE("Statement::operator<<")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<int>();
+            auto result_value = result[0].as_optional<int>();
             REQUIRE(*result_value == *value);
         }
 
@@ -528,7 +528,7 @@ TEST_CASE("Statement::operator<<")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<int>();
+            auto result_value = result[0].as_optional<int>();
             REQUIRE(*result_value == 123);
         }
 
@@ -542,7 +542,7 @@ TEST_CASE("Statement::operator<<")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<std::string>();
+            auto result_value = result[0].as_optional<std::string>();
             REQUIRE_FALSE(result_value.has_value());
         }
 
@@ -555,7 +555,7 @@ TEST_CASE("Statement::operator<<")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<std::string>();
+            auto result_value = result[0].as_optional<std::string>();
             REQUIRE_FALSE(result_value.has_value());
         }
 
@@ -569,7 +569,7 @@ TEST_CASE("Statement::operator<<")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<std::string>();
+            auto result_value = result[0].as_optional<std::string>();
             REQUIRE(result_value.has_value());
             REQUIRE(*result_value == *value);
         }
@@ -583,7 +583,7 @@ TEST_CASE("Statement::operator<<")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<std::string>();
+            auto result_value = result[0].as_optional<std::string>();
             REQUIRE(result_value.has_value());
             REQUIRE(*result_value == "test");
         }
@@ -892,7 +892,7 @@ TEST_CASE("Statement::operator[](const char*)")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<int>();
+            auto result_value = result[0].as_optional<int>();
             REQUIRE_FALSE(result_value.has_value());
         }
 
@@ -905,7 +905,7 @@ TEST_CASE("Statement::operator[](const char*)")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<int>();
+            auto result_value = result[0].as_optional<int>();
             REQUIRE_FALSE(result_value.has_value());
         }
 
@@ -919,7 +919,7 @@ TEST_CASE("Statement::operator[](const char*)")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<int>();
+            auto result_value = result[0].as_optional<int>();
             REQUIRE(*result_value == *value);
         }
 
@@ -932,7 +932,7 @@ TEST_CASE("Statement::operator[](const char*)")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<int>();
+            auto result_value = result[0].as_optional<int>();
             REQUIRE(*result_value == 123);
         }
 
@@ -946,7 +946,7 @@ TEST_CASE("Statement::operator[](const char*)")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<std::string>();
+            auto result_value = result[0].as_optional<std::string>();
             REQUIRE_FALSE(result_value.has_value());
         }
 
@@ -959,7 +959,7 @@ TEST_CASE("Statement::operator[](const char*)")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<std::string>();
+            auto result_value = result[0].as_optional<std::string>();
             REQUIRE_FALSE(result_value.has_value());
         }
 
@@ -973,7 +973,7 @@ TEST_CASE("Statement::operator[](const char*)")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<std::string>();
+            auto result_value = result[0].as_optional<std::string>();
             REQUIRE(result_value.has_value());
             REQUIRE(*result_value == *value);
         }
@@ -987,7 +987,7 @@ TEST_CASE("Statement::operator[](const char*)")
             auto select_statement = conn.prepare("SELECT name FROM item");
             auto result = select_statement.execute_query();
             REQUIRE(result.step());
-            auto result_value = result[0].to_optional<std::string>();
+            auto result_value = result[0].as_optional<std::string>();
             REQUIRE(result_value.has_value());
             REQUIRE(*result_value == "test");
         }

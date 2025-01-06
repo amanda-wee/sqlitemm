@@ -59,29 +59,29 @@ SCENARIO("results can be retrieved using result fields")
                 auto statement = conn.prepare("SELECT name, quantity, price FROM item;");
                 auto result = statement.execute_query();
                 result.step();
-                auto name = result[0].to_optional<std::string>();
+                auto name = result[0].as_optional<std::string>();
                 REQUIRE_FALSE(name.has_value());
-                auto quantity = result[1].to_optional<int>();
+                auto quantity = result[1].as_optional<int>();
                 REQUIRE_FALSE(quantity.has_value());
-                auto price = result[2].to_optional<double>();
+                auto price = result[2].as_optional<double>();
                 REQUIRE_FALSE(quantity.has_value());
                 result.step();
-                name = result[0].to_optional<std::string>();
+                name = result[0].as_optional<std::string>();
                 REQUIRE(*name == "ball");
                 REQUIRE(name.has_value());
-                quantity = result[1].to_optional<int>();
+                quantity = result[1].as_optional<int>();
                 REQUIRE(*quantity == 2);
                 REQUIRE(quantity.has_value());
-                price = result[2].to_optional<double>();
+                price = result[2].as_optional<double>();
                 REQUIRE(*price == Approx(1.23));
                 REQUIRE(price.has_value());
                 result.step();
-                name = result[0].to_optional<std::string>();
+                name = result[0].as_optional<std::string>();
                 REQUIRE_FALSE(name.has_value());
-                quantity = result[1].to_optional<int>();
+                quantity = result[1].as_optional<int>();
                 REQUIRE(*quantity == 3);
                 REQUIRE(quantity.has_value());
-                price = result[2].to_optional<double>();
+                price = result[2].as_optional<double>();
                 REQUIRE_FALSE(price.has_value());
             }
         }

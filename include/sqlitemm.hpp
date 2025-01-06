@@ -1185,7 +1185,7 @@ namespace sqlitemm
          * Returns the result field as a std::optional<T>.
          */
         template<typename T>
-        std::optional<T> to_optional() const
+        std::optional<T> as_optional() const
         {
             std::optional<T> result;
             if (column_type != SQLITE_NULL)

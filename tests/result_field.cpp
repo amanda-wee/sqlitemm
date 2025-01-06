@@ -81,7 +81,7 @@ TEST_CASE("ResultField conversions")
 
         SECTION("optional")
         {
-            auto field_result = result[0].to_optional<double>();
+            auto field_result = result[0].as_optional<double>();
             REQUIRE_FALSE(field_result.has_value());
         }
 

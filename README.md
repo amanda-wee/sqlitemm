@@ -29,7 +29,7 @@ Features
 * `ResultIterator`: an input iterator that allows for iterating over result rows into objects of arbitrary type as long as the type provides a constructor that processes a `Result` as a row, or the iterator is provided a callback function that converts a `Result` as a row into an object of the given type
 * `result >> valueA >> valueB;`: "stream" the fields of a result row in sequence to their destination variables, implicitly performing type conversion, including conversion to `std::optional` for fields that might contain `NULL`
 * `valueA = result[0];`: retrieve the fields of a result row by index, implicitly performing type conversion
-* `valueA = result[0].to_optional<int>();`: convert the fields of a result row retrieved by index to `std::optional`, hence allowing for fields that might contain `NULL`
+* `valueA = result[0].as_optional<int>();`: convert the fields of a result row retrieved by index to `std::optional`, hence allowing for fields that might contain `NULL`
 * Retrieve arbitrary UTF-8 text, UTF-16 text, and BLOB values by providing callback functions to perform the retrieval
 
 ### Other SQLite features
