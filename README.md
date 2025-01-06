@@ -20,23 +20,23 @@ Features
 ### Prepared statement parameter binding
 * `statement << paramA << paramB;`: "stream" parameter values in sequence to bind them
 * `statement[":paramA"] = paramA;`: bind parameters by name
-* Support for binding `NULL` (as `nullptr`), `const char*`, `std::string`, `std::u16string`, and zero-filled blob parameters
-* Support for binding arbitrary text and BLOB parameters through `TextValue` and `BlobValue` respectively
-* Support for binding values of type `T` that may or may not be `NULL` through binding `std::optional<T>`
-* Support for conveniently binding `std::tuple` objects having 1 to 5 elements inclusive into the same number of parameters
+* Bind `NULL` (as `nullptr`), `const char*`, `std::string`, `std::u16string`, and zero-filled blob parameters
+* Bind arbitrary text and BLOB parameters through `TextValue` and `BlobValue` respectively
+* Bind values of type `T` that may or may not be `NULL` by binding `std::optional<T>`
+* Conveniently bind `std::tuple` objects having 1 to 5 elements inclusive into the same number of parameters
 
 ### Query result retrieval
 * `ResultIterator`: an input iterator that allows for iterating over result rows into objects of arbitrary type as long as the type provides a constructor that processes a `Result` as a row, or the iterator is provided a callback function that converts a `Result` as a row into an object of the given type
 * `result >> valueA >> valueB;`: "stream" the fields of a result row in sequence to their destination variables, implicitly performing type conversion, including conversion to `std::optional` for fields that might contain `NULL`
 * `valueA = result[0];`: retrieve the fields of a result row by index, implicitly performing type conversion
 * `valueA = result[0].to_optional<int>();`: convert the fields of a result row retrieved by index to `std::optional`, hence allowing for fields that might contain `NULL`
-* Support for retrieving arbitrary UTF-8 text, UTF-16 text, and BLOB values by providing callback functions to perform the retrieval
+* Retrieve arbitrary UTF-8 text, UTF-16 text, and BLOB values by providing callback functions to perform the retrieval
 
 ### Other SQLite features
-* Support for creating SQL functions (scalar, aggregate, and window)
-* Support for creating SQL collations
-* Support for database operation interrupts
-* Support for loading SQLite extension libraries
+* Create SQL functions (scalar, aggregate, and window)
+* Create SQL collations
+* Load SQLite extension libraries
+* Use database operation interrupts
 * Optional "strict typing" on a per-query basis, allowing for the prevention of SQLite automatic type conversions across the SQLite fundamental types when retrieving values
 * Convenience functions for attaching and detaching databases
 
