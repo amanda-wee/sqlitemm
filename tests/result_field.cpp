@@ -79,17 +79,25 @@ TEST_CASE("ResultField conversions")
         auto result = select_statement.execute_query();
         REQUIRE(result.step());
 
-        SECTION("optional")
-        {
-            auto field_result = result[0].as_optional<double>();
-            REQUIRE_FALSE(field_result.has_value());
-        }
-
         SECTION("without strict typing")
         {
             double field_result = result[0];
             REQUIRE(field_result == Approx(0));
         }
+    }
+
+    SECTION("NULL or NOT NULL")
+    {
+        conn.execute("INSERT INTO item (price, quantity) VALUES (NULL, 123);");
+
+        auto select_statement = conn.prepare("SELECT price, quantity FROM item");
+        auto result = select_statement.execute_query();
+        REQUIRE(result.step());
+
+        auto null_field_result = result[0].as_optional<double>();
+        REQUIRE_FALSE(null_field_result.has_value());
+        auto not_null_field_result = result[1].as_optional<int>();
+        REQUIRE(*not_null_field_result == 123);
     }
 
     SECTION("INTEGER")
