@@ -526,3 +526,88 @@ TEST_CASE("Result conversions")
         }
     }
 }
+
+TEST_CASE("Result conversions to std::tuple")
+{
+    sqlitemm::Connection conn(":memory:");
+    REQUIRE_NOTHROW(
+        conn.execute(
+            "CREATE TABLE item (id INTEGER PRIMARY KEY, column0 INTEGER, column1 TEXT, column2 INTEGER, "
+            "column3 TEXT, column4 INTEGER);"
+        )
+    );
+
+    SECTION("one element tuple")
+    {
+        REQUIRE_NOTHROW(conn.execute("INSERT INTO item (id, column0) VALUES (1, 1);"));
+        auto statement = conn.prepare("SELECT column0 FROM item;");
+        auto result = statement.execute_query();
+        REQUIRE(result.step());
+        auto values = std::tuple<int>{};
+        REQUIRE_NOTHROW(result >> values);
+        REQUIRE(std::get<0>(values) == 1);
+    }
+
+    SECTION("two element tuple")
+    {
+        REQUIRE_NOTHROW(conn.execute("INSERT INTO item (id, column0, column1) VALUES (1, 1, 'Alice');"));
+        auto statement = conn.prepare("SELECT column0, column1 FROM item;");
+        auto result = statement.execute_query();
+        REQUIRE(result.step());
+        auto values = std::tuple<int, std::string>{};
+        REQUIRE_NOTHROW(result >> values);
+        REQUIRE(std::get<0>(values) == 1);
+        REQUIRE(std::get<1>(values) == "Alice");
+    }
+
+    SECTION("three element tuple")
+    {
+        REQUIRE_NOTHROW(conn.execute("INSERT INTO item (id, column0, column1, column2) VALUES (1, 1, 'Alice', 2);"));
+        auto statement = conn.prepare("SELECT column0, column1, column2 FROM item;");
+        auto result = statement.execute_query();
+        REQUIRE(result.step());
+        auto values = std::tuple<int, std::string, int>{};
+        REQUIRE_NOTHROW(result >> values);
+        REQUIRE(std::get<0>(values) == 1);
+        REQUIRE(std::get<1>(values) == "Alice");
+        REQUIRE(std::get<2>(values) == 2);
+    }
+
+    SECTION("four element tuple")
+    {
+        REQUIRE_NOTHROW(
+            conn.execute(
+                "INSERT INTO item (id, column0, column1, column2, column3) VALUES (1, 1, 'Alice', 2, 'Bob');"
+            )
+        );
+        auto statement = conn.prepare("SELECT column0, column1, column2, column3 FROM item;");
+        auto result = statement.execute_query();
+        REQUIRE(result.step());
+        auto values = std::tuple<int, std::string, int, std::string>{};
+        REQUIRE_NOTHROW(result >> values);
+        REQUIRE(std::get<0>(values) == 1);
+        REQUIRE(std::get<1>(values) == "Alice");
+        REQUIRE(std::get<2>(values) == 2);
+        REQUIRE(std::get<3>(values) == "Bob");
+    }
+
+    SECTION("five element tuple")
+    {
+        REQUIRE_NOTHROW(
+            conn.execute(
+                "INSERT INTO item (id, column0, column1, column2, column3, column4) "
+                "VALUES (1, 1, 'Alice', 2, 'Bob', 3);"
+            )
+        );
+        auto statement = conn.prepare("SELECT column0, column1, column2, column3, column4 FROM item;");
+        auto result = statement.execute_query();
+        REQUIRE(result.step());
+        auto values = std::tuple<int, std::string, int, std::string, int>{};
+        REQUIRE_NOTHROW(result >> values);
+        REQUIRE(std::get<0>(values) == 1);
+        REQUIRE(std::get<1>(values) == "Alice");
+        REQUIRE(std::get<2>(values) == 2);
+        REQUIRE(std::get<3>(values) == "Bob");
+        REQUIRE(std::get<4>(values) == 3);
+    }
+}

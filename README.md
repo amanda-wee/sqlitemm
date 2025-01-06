@@ -31,6 +31,7 @@ Features
 * `valueA = result[0];`: retrieve the fields of a result row by index, implicitly performing type conversion
 * `valueA = result[0].as_optional<int>();`: convert the fields of a result row retrieved by index to `std::optional`, hence allowing for fields that might contain `NULL`
 * Retrieve arbitrary UTF-8 text, UTF-16 text, and BLOB values by providing callback functions to perform the retrieval
+* Conveniently retrieve 1 to 5 fields inclusive into `std::tuple` objects having the same number of elements
 
 ### Other SQLite features
 * Create SQL functions (scalar, aggregate, and window)

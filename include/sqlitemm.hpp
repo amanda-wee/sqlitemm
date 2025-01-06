@@ -1536,6 +1536,65 @@ namespace sqlitemm
     };
 
     /**
+     * Reads and converts the current and subsequent fields in the result row
+     * to the corresponding elements of the tuple, then advances to the next
+     * field, if any. Returns a reference to the Result object.
+     */
+    template<typename T1>
+    Result& operator>>(Result& result, std::tuple<T1>& values)
+    {
+        return result >> std::get<0>(values);
+    }
+
+    /**
+     * Reads and converts the current and subsequent fields in the result row
+     * to the corresponding elements of the tuple, then advances to the next
+     * field, if any. Returns a reference to the Result object.
+     */
+    template<typename T1, typename T2>
+    Result& operator>>(Result& result, std::tuple<T1, T2>& values)
+    {
+        using std::get;
+        return result >> get<0>(values) >> get<1>(values);
+    }
+
+    /**
+     * Reads and converts the current and subsequent fields in the result row
+     * to the corresponding elements of the tuple, then advances to the next
+     * field, if any. Returns a reference to the Result object.
+     */
+    template<typename T1, typename T2, typename T3>
+    Result& operator>>(Result& result, std::tuple<T1, T2, T3>& values)
+    {
+        using std::get;
+        return result >> get<0>(values) >> get<1>(values) >> get<2>(values);
+    }
+
+    /**
+     * Reads and converts the current and subsequent fields in the result row
+     * to the corresponding elements of the tuple, then advances to the next
+     * field, if any. Returns a reference to the Result object.
+     */
+    template<typename T1, typename T2, typename T3, typename T4>
+    Result& operator>>(Result& result, std::tuple<T1, T2, T3, T4>& values)
+    {
+        using std::get;
+        return result >> get<0>(values) >> get<1>(values) >> get<2>(values) >> get<3>(values);
+    }
+
+    /**
+     * Reads and converts the current and subsequent fields in the result row
+     * to the corresponding elements of the tuple, then advances to the next
+     * field, if any. Returns a reference to the Result object.
+     */
+    template<typename T1, typename T2, typename T3, typename T4, typename T5>
+    Result& operator>>(Result& result, std::tuple<T1, T2, T3, T4, T5>& values)
+    {
+        using std::get;
+        return result >> get<0>(values) >> get<1>(values) >> get<2>(values) >> get<3>(values) >> get<4>(values);
+    }
+
+    /**
      * Input iterator to the rows of a result set.
      *
      * To use a result iterator for some type T, either define a constructor
