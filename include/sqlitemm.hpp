@@ -1004,12 +1004,7 @@ namespace sqlitemm
         return statement;
     }
 
-    /**
-     * Binds the value to the current parameter of the prepared statement
-     * object if it has a value, otherwise binds NULL to the current
-     * parameter, then advances to the next parameter. Returns a reference to
-     * the prepared statement object.
-     */
+    //! @copydoc operator<<(Statement&,const std::optional<T>&)
     template<typename T>
     Statement& operator<<(Statement& statement, std::optional<T>&& value)
     {
@@ -1038,14 +1033,7 @@ namespace sqlitemm
         return statement << std::get<0>(value);
     }
 
-    /**
-     * Binds the elements of the tuple argument in sequence to the current
-     * and subsequent parameters of the prepared statement object, then
-     * advances to the next parameter. Returns a reference to the prepared
-     * statement object. The caller is responsible for ensuring that the
-     * number of elements of the tuple do not exceed the number of remaining
-     * parameters to be bound.
-     */
+    //! @copydoc operator<<(Statement&,const std::tuple<T1>&)
     template<typename T1, typename T2>
     Statement& operator<<(Statement& statement, const std::tuple<T1, T2>& value)
     {
@@ -1053,14 +1041,7 @@ namespace sqlitemm
         return statement << get<0>(value) << get<1>(value);
     }
 
-    /**
-     * Binds the elements of the tuple argument in sequence to the current
-     * and subsequent parameters of the prepared statement object, then
-     * advances to the next parameter. Returns a reference to the prepared
-     * statement object. The caller is responsible for ensuring that the
-     * number of elements of the tuple do not exceed the number of remaining
-     * parameters to be bound.
-     */
+    //! @copydoc operator<<(Statement&,const std::tuple<T1>&)
     template<typename T1, typename T2, typename T3>
     Statement& operator<<(Statement& statement, const std::tuple<T1, T2, T3>& value)
     {
@@ -1068,14 +1049,7 @@ namespace sqlitemm
         return statement << get<0>(value) << get<1>(value) << get<2>(value);
     }
 
-    /**
-     * Binds the elements of the tuple argument in sequence to the current
-     * and subsequent parameters of the prepared statement object, then
-     * advances to the next parameter. Returns a reference to the prepared
-     * statement object. The caller is responsible for ensuring that the
-     * number of elements of the tuple do not exceed the number of remaining
-     * parameters to be bound.
-     */
+    //! @copydoc operator<<(Statement&,const std::tuple<T1>&)
     template<typename T1, typename T2, typename T3, typename T4>
     Statement& operator<<(Statement& statement, const std::tuple<T1, T2, T3, T4>& value)
     {
@@ -1083,14 +1057,7 @@ namespace sqlitemm
         return statement << get<0>(value) << get<1>(value) << get<2>(value) << get<3>(value);
     }
 
-    /**
-     * Binds the elements of the tuple argument in sequence to the current
-     * and subsequent parameters of the prepared statement object, then
-     * advances to the next parameter. Returns a reference to the prepared
-     * statement object. The caller is responsible for ensuring that the
-     * number of elements of the tuple do not exceed the number of remaining
-     * parameters to be bound.
-     */
+    //! @copydoc operator<<(Statement&,const std::tuple<T1>&)
     template<typename T1, typename T2, typename T3, typename T4, typename T5>
     Statement& operator<<(Statement& statement, const std::tuple<T1, T2, T3, T4, T5>& value)
     {
@@ -1546,11 +1513,7 @@ namespace sqlitemm
         return result >> std::get<0>(values);
     }
 
-    /**
-     * Reads and converts the current and subsequent fields in the result row
-     * to the corresponding elements of the tuple, then advances to the next
-     * field, if any. Returns a reference to the Result object.
-     */
+    //! @copydoc operator>>(Result&,std::tuple<T1>&)
     template<typename T1, typename T2>
     Result& operator>>(Result& result, std::tuple<T1, T2>& values)
     {
@@ -1558,11 +1521,7 @@ namespace sqlitemm
         return result >> get<0>(values) >> get<1>(values);
     }
 
-    /**
-     * Reads and converts the current and subsequent fields in the result row
-     * to the corresponding elements of the tuple, then advances to the next
-     * field, if any. Returns a reference to the Result object.
-     */
+    //! @copydoc operator>>(Result&,std::tuple<T1>&)
     template<typename T1, typename T2, typename T3>
     Result& operator>>(Result& result, std::tuple<T1, T2, T3>& values)
     {
@@ -1570,11 +1529,7 @@ namespace sqlitemm
         return result >> get<0>(values) >> get<1>(values) >> get<2>(values);
     }
 
-    /**
-     * Reads and converts the current and subsequent fields in the result row
-     * to the corresponding elements of the tuple, then advances to the next
-     * field, if any. Returns a reference to the Result object.
-     */
+    //! @copydoc operator>>(Result&,std::tuple<T1>&)
     template<typename T1, typename T2, typename T3, typename T4>
     Result& operator>>(Result& result, std::tuple<T1, T2, T3, T4>& values)
     {
@@ -1582,11 +1537,7 @@ namespace sqlitemm
         return result >> get<0>(values) >> get<1>(values) >> get<2>(values) >> get<3>(values);
     }
 
-    /**
-     * Reads and converts the current and subsequent fields in the result row
-     * to the corresponding elements of the tuple, then advances to the next
-     * field, if any. Returns a reference to the Result object.
-     */
+    //! @copydoc operator>>(Result&,std::tuple<T1>&)
     template<typename T1, typename T2, typename T3, typename T4, typename T5>
     Result& operator>>(Result& result, std::tuple<T1, T2, T3, T4, T5>& values)
     {
