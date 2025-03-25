@@ -38,7 +38,7 @@ LDLIBS = -lpthread -ldl
 .PHONY: all check clean docs help test
 
 ## Build all including tests
-all: $(c_objects) $(cxx_objects) $(test_objects) $(test_executable)
+all: $(c_objects) $(cxx_objects) $(test_c_objects) $(test_cxx_objects) $(test_executable)
 
 ## Show help text
 help:
