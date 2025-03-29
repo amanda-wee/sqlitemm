@@ -35,8 +35,9 @@ build/
 # Generated documentation
 docs/
 
-# Editor configuration files
-.vscode
+# IDE configuration
+/.vscode
+/.continue
 
 # Other
 .DS_Store
